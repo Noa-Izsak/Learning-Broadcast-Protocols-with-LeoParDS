@@ -7,38 +7,7 @@ from State_Vector import learn_from_characteristic_set
 from Trie import Trie
 from BP_Class import BP_class
 
-print(z3.get_version_string())
-"""
-first : find the original state actions...
-for 1 proc we know all the actions that are feasible...
-2 procs, learn about responses going in a different ways
-above 2, for n procs , n>=2:
-check feasible diff from n+1 to n procs.
-    *   if new actions are feasible (the group of feasibility for n+1 != the group that is feasible for n)
-        then the n+1 proc want to a diff location then the other n, the group of new act that is feasible is the acts
-        that are feasible from the state it reached
-    *   else, no new actions are feasible, then the n+1 proc 'joined' one of the other n procs.
-            *   if they are all together then we know for certain where it is.
-            *   else, there are multiple locations that the n procs are and the n+1 proc joined one of them.
-
-                -- There is several options for a response to go, act is necessarily known where it gets,
-                might be that a response for an action and the act is unclear with one goes where. --
-
-                in that case we would hold all the possibilities (in a trie / other data structure).
-                keep going until no new info, until (according to 'find_all_characteristic_sets_for_learning',
-                stops when: characteristic set from n+1 procs. == characteristic set from n procs.)
-
-    After all of it, we remain with the possibilities trie, need to create paths from top to bottom(to leaves)
-    if a path of chooses return the origin tree according to the characteristic set, finished.
-    else, run the same sequence of actions as the one that led to the contradiction.
-        * if in the end of the sequence the missing location (the entry in the vec that was ment to be the word to read)
-        then eliminate those entries.
-        * else, is feasible for this sequence, continue hold this seq of possibilities.
-            (Might be better to hold a quick vec calculater to know the curr vec for each sequence of possibilities)
-            --  Need to proof that is bounded ... By the number of procs and number of words, possibilities trie is log.
-                then be each choice we need to check log of possibilities... (height of the tree)
-        DONE, found the correct one (eliminate the rest or find the specific one)
-"""
+print(z3.get_version_string())  # Was tested for 4.12.2
 
 a_val = 97
 z_val = 122
@@ -82,7 +51,6 @@ def get_keys_by_value(dictionary, target_value):
 
 def has_common_letter(actions, known_actions):
     """
-
     :param actions: feasible actions after "prefix"
     :param known_actions: already seen actions
     :return:
@@ -139,7 +107,6 @@ class LearnerBp:
                  cutoff=None):
         """
         :param characteristic_sets: for each number of proces: characteristic set
-
         :param real_bp: the real bp to compare to
         """
         self.ret_origin_self_bp = None
@@ -211,7 +178,7 @@ class LearnerBp:
                          'amount_of_states_in_minimal_output': 0,
                          'minimal_output_BP': '',
                          'minimal_solve_SMT_time': 0.0
-                         }  # 'right_output'
+                         }
 
     def a_and_b_are_separated_constraints(self):
         """
@@ -259,10 +226,6 @@ class LearnerBp:
             for act_2 in can_be:
                 if (act in set(can_be[act_2])) and len(set(can_be[act_2]).symmetric_difference(appears_with)) != 0:
                     flag = True
-        # makesure: the above for was already done in:
-        #  if len(pos_w) >= len(neg_w) and pos_w.startswith(neg_w[:-1]):
-        #    if (neg_w[-1], pos_w[len(neg_w) - 1]) not in self.not_in_same_state:
-        #        self.not_in_same_state.append((neg_w[-1], pos_w[len(neg_w) - 1]))
         for act in can_be:
             other_acts = set(all_acts) - set(can_be[act])
             for o_a in other_acts:
@@ -280,30 +243,21 @@ class LearnerBp:
             elif len(set(can_be[f_l]).symmetric_difference(set(all_first_letters))) > 0:
                 flag = True
             elif self.characteristic_set.get(1) is not None:
-                # list_of_options = []
                 is_flfl_in_pos = False
                 for element in self.characteristic_set[1]:
-                    # if element.startswith(f_l):
-                    #     list_of_options.append(f_l)
                     if element.startswith(str(f_l + f_l)):
                         is_flfl_in_pos = True
                 if (not is_flfl_in_pos) and (str(f_l + f_l) not in all_negative_examples):
                     flag = True
-        # return None, all_acts
-        # Todo: check about it
-        # We for sure knows who is not with one another (two actions that are from different states)
 
         if not flag:
             # then we know how to separate the states
-            # makesure: that it can't be "triked", if it relay means we can separate all actions to states...
             states = dict()
             state_count = 1
             used_acts = set()
-            # print("all acts ", all_acts)
             for act in all_acts:
                 set_intersect = set(can_be[act])
                 if len(set_intersect) == 0:
-                    # print(f"look at {set_intersect} for act {act}")
                     continue
                 if set_intersect in states.values():
                     continue
@@ -321,57 +275,37 @@ class LearnerBp:
         ''' 
         Modify negative examples in the Sample so that they will appears only once for greatest value processes numbers 
         '''
-        """
-        current_seq_learn_pos : a dict of prefixes and next letters...
-                feasible words for counter processes, i.e. smaller equal to this. 
-                (i.e. by the given sample this is the minimal number for which this is feasible)
-        current_learn_pos : a list of feasible words for this exact number of processes
-        current_geq_learn_neg: a list of infeasible for counter processes or more
-        current_learn_neg : a list of infeasible words for exactly this number 
-                (i.e. by the given sample this is the maximal number for which this is infeasible)
-        """
         current_seq_learn_pos, current_learn_pos, current_geq_learn_neg, current_learn_neg = learn_from_characteristic_set(
             self.modified_full_cs, 1)
-        # print("current_seq_learn_pos:", current_seq_learn_pos)
-        # print("current_learn_pos:", current_learn_pos)
         all_first_letters = [pos_w[0] for c in self.characteristic_set for pos_w in self.characteristic_set[c]]
         all_first_letters = list(set(all_first_letters))
         if self.characteristic_set.get(1) is None:
             if all_first_letters:  # not an empty list, there are some positive examples in the sample
                 self.characteristic_set[1] = all_first_letters
             else:
-                """
-                That means we have no positive examples so no element was chosen here,
-                in that case a BP of the empty language is O.K.
-                For us, it would be an initial state with act not seen in the negative examples as a self-loop and
-                another not reachable state with all other actions as self loop """
+                """ No positive example sin the sample, return defaultive agreeing BP """
                 list_neg_letters = list(set(get_unique_letters(current_geq_learn_neg)))
                 not_seen_act = list(set(alphabet) - set(list_neg_letters))[0]
                 all_acts_list = list_neg_letters + [not_seen_act]
-                print("all_acts_list ", all_acts_list)
                 self.bp = Bp.BP_class(2, {0: {not_seen_act: 0}, 1: {neg_el: 1 for neg_el in list_neg_letters}}, 0,
                                       {0: {a_el: 0 for a_el in all_acts_list}, 1: {a_el: 1 for a_el in all_acts_list}})
                 self.clean_option_holders()
                 self.deal_with_possibilities()
                 return
-        # print(f"the bp2 {self.bp}")
         states, all_acts, all_first_letters = self.a_and_b_are_separated_constraints()
-        # print("current_seq_learn_pos:", current_seq_learn_pos)
-        # print("states:", states)
+
         for curr_word in current_learn_pos:
             for i in range(len(curr_word) - 1):
                 self.fsend_behaviours_by_acts.append((curr_word[i], curr_word[i + 1]))
         self.reset_states_by_feasible_in_one(current_learn_pos, current_seq_learn_pos, states)
         self.fsend_behaviours_by_acts = list(set(self.fsend_behaviours_by_acts))
-        # print(f"the bp3 {self.bp}")
-        # print("fsend_behaviours_by_acts: ", self.fsend_behaviours_by_acts)
+
         negative_acts_len_1 = filter_strings_by_length(current_geq_learn_neg, 1)
         self.add_neg_actions_to_smt(current_geq_learn_neg)
         self.add_actions_to_smt(current_seq_learn_pos)
         for init_act in all_first_letters:
             self.smt_constraint_copy.append(fst(self.actions_smt[init_act]) == self.states_smt[self.bp.initial_state])
             for not_init_act in negative_acts_len_1:
-                # print(f"init_act: {init_act} and not_init_act {not_init_act}")
                 self.not_in_same_state.append((init_act, not_init_act))
                 self.smt_constraint_copy.append(
                     fst(self.actions_smt[not_init_act]) != self.states_smt[self.bp.initial_state])
@@ -380,23 +314,17 @@ class LearnerBp:
         all_positive_acts = get_positive_alphabet(self.modified_full_cs['positive'])
 
         if all_positive_acts != all_acts and (states is None):
-            # print(f"all acts:{set(all_acts)}\n all_positive_acts{set(all_positive_acts)}")
-            for a_1 in list(set(all_acts) - set(
-                    all_positive_acts)):  # note: updated... (the list was in the self.create , where now is a_1)
+            for a_1 in list(set(all_acts) - set(all_positive_acts)):
                 self.create_new_state_for_new_action(a_1)
                 self.bp.update_self_loops(self.bp.receivers)
         elif all_positive_acts != all_acts:
-            # print(f"all acts:{set(all_acts)}\n all_positive_acts{set(all_positive_acts)}")
             self.create_new_state_for_new_action(list(set(all_acts) - set(all_positive_acts)))
             self.bp.update_self_loops(self.bp.receivers)
 
         self.bp.update_self_loops(self.bp.receivers)
-        # print(f"the bp4 {self.bp}")
         self.first_round2(current_seq_learn_pos, current_learn_neg)
         print(f"this is the BP:\nacts:{self.bp.actions}\nrec:{self.bp.receivers}")
-        # print(f"option holder : {self.options_holder}")
         print(f"SMT values constrains")
-        # self.missing_words_2() # currently not needed, using SMT for the options
         pass
 
     def first_round2(self, current_learn_pos, current_learn_neg):
@@ -414,6 +342,7 @@ class LearnerBp:
         limit_run_procs = max(list_pos,
                               list_neg)
         for counter in range(1, limit_run_procs + 1):
+            print("counter: ", counter)
             if counter == 1:
                 # Then we already took care about the current_learn_pos, we also took care about current_learn_neg
                 # for 1 action words, which are not enabled from the initial state.
@@ -444,33 +373,15 @@ class LearnerBp:
                 new_acts = list(
                     filter(lambda x: self.bp.get_state_index_by_action(x) == -1, plus_prefix))
                 if new_acts:  # if isn't an empty list
-                    # for new_a in new_acts:
-                    #     self.create_new_state_for_new_action([new_a])
-                    #     self.bp.update_self_loops(self.bp.receivers)
-                    # makesure about note below
-                    ''' 
-                    if it is a CS:
-                    then, adding a single processes enabled some set of actions, 
-                    hence they are all from the same new state
-                    
-                    if it is not a CS, this might be from different states,
-                    so we need to create new states for each action, and make sure that so far, 
-                    they don't contradict each other,
-                    later on, they might be joined together if same values given by the SMT
-                    
-                    But we start by assuming it is a CS, so we add them together. if the SMT fails, then we assume not 
-                    a CS and rebuild it'''
                     self.create_new_state_for_new_action(new_acts)
                     self.bp.update_self_loops(self.bp.receivers)
 
-            # print(f"plus_one_learn_pos: for counter :{counter}:", plus_one_learn_pos)
             for w_neg in plus_one_learn_pos:
                 tot_constraint_pos = []
                 constraints_init, procs_holder = self.init_procs_holders_for_prefix(counter, w_neg)
                 if constraints_init:
                     tot_constraint_pos.append(And(*constraints_init))
 
-                # constraints = []
                 for index in range(len(w_neg)):
                     someone_is_there = self.constraint_proc_in_act_state(index, w_neg, procs_holder)
                     if someone_is_there:
@@ -483,11 +394,8 @@ class LearnerBp:
 
                 for k in range(len(w_neg) + 1):
                     neg_plus = []
-                    # print(f"word  in iter {k} is {word[:k]}")
-                    # print(f"plus_one_geq_learn_neg: for counter :{counter}:", plus_one_geq_learn_neg)
                     for w in plus_one_geq_learn_neg:
                         if len(w) == len(w_neg[:k]) + 1 and w.startswith(w_neg[:k]):
-                            # print(f"pos word is {word} and neg word is {w} for counter {counter}")
                             neg_plus.append(w[-1])
                     if neg_plus:
                         for b in neg_plus:
@@ -496,7 +404,6 @@ class LearnerBp:
                         tot_constraint_pos.append(And(*neg_const))
                 self.smt_constraint_copy.append(And(*tot_constraint_pos))
 
-            # print(f"plus_one_learn_neg: for counter :{counter}:", plus_one_learn_neg)
             for w_neg in plus_one_learn_neg:
                 ''' word is infeasible for counter proc '''
                 # there is an *and* between word[:prefix_len] is feasible and word[prefix_len] is infeasible after words
@@ -520,33 +427,22 @@ class LearnerBp:
                 procs_holder[i][a] = Int(f'{w_neg}_{str(counter)}_{i}_{a}')
                 self.constraints_total_for_procs.append(procs_holder[i][a])
         for prefix_len in range(len(w_neg)):
-            # -1 because even for the last option after reading word[:-1] then word[-1] is infeasible..
-            # and in case len(word)==1 we already took care of it
             curr_constraint = []
             if prefix_len == 0:
                 ''' make sure that the #counter processes starts in the initial state '''
-                # for i in range(counter): #note: the line below was in the for
                 curr_constraint.append(
                     fst(self.actions_smt[w_neg[prefix_len]]) != self.states_smt[self.bp.initial_state])
-                # curr_constraint.append(
-                #     procs_holder[i][0] != self.states_smt[self.bp.initial_state])
-            # for k in range(1, len(word)):
-            #     curr_constraint.append(
-            #         procs_holder[0][0] == Int(f'{word[:k]}_{str(counter)}_{0}_{0}'))  # note - newly added
-            #     self.constraints_total_for_procs.append(Int(f'{word[:k]}_{str(counter)}_{0}_{0}'))
             else:
                 # there is a non-empty prefix of word that is feasible that after words is infeasible
-
                 ''' make sure that the #counter processes starts in the initial state '''
                 for i in range(counter):
                     curr_constraint.append(
                         procs_holder[i][0] == self.states_smt[self.bp.initial_state])
                 curr_constraint.append(
-                    procs_holder[0][0] == fst(self.actions_smt[w_neg[0]]))  # note - newly added,
-                # if the initial one is in the right state then the rest of procs in the beginning are in the tight state
+                    procs_holder[0][0] == fst(self.actions_smt[w_neg[0]]))
                 for k in range(1, len(w_neg)):
                     curr_constraint.append(
-                        procs_holder[0][0] == Int(f'{w_neg[:k]}_{str(counter)}_{0}_{0}'))  # note - newly added
+                        procs_holder[0][0] == Int(f'{w_neg[:k]}_{str(counter)}_{0}_{0}'))
                     self.constraints_total_for_procs.append(Int(f'{w_neg[:k]}_{str(counter)}_{0}_{0}'))
                 for index in range(prefix_len):
                     someone_is_there = self.constraint_proc_in_act_state(index, w_neg, procs_holder)
@@ -555,13 +451,10 @@ class LearnerBp:
                     curr_constraint.append(Or(*total_holder))
                 temp_holder = []
                 for i in range(counter):
-                    # print(f"the word is {word} and prefix_len is {prefix_len}")
-                    # print("word[prefix_len]", word[prefix_len])
                     temp_holder.append(
                         procs_holder[i][prefix_len] != fst(self.actions_smt[w_neg[prefix_len]]))
                 if temp_holder:
                     curr_constraint.append(And(*temp_holder))
-            # print(f"curr_constraint counter:{counter}, word{word}, prefix_len{prefix_len}:", curr_constraint)
             if curr_constraint:
                 total_neg_constraints.append(And(*curr_constraint))
         return total_neg_constraints
@@ -590,13 +483,9 @@ class LearnerBp:
     def constraint_proc_in_act_state(self, index, prefix, procs_holder):
         """
         making sure that there is a processes in the state where prefix[index] is enabled from
-        :param index:
-        :param prefix:
-        :param procs_holder:
         :return: the list of constraint that ensure it
         """
         someone_is_there = []
-        # print(f"11:: the index: {index} and the word len is {len(prefix)}")
         for p in procs_holder:
             someone_is_there.append(p[index] == fst(self.actions_smt[prefix[index]]))
         return someone_is_there
@@ -604,8 +493,6 @@ class LearnerBp:
     def init_procs_holders_for_prefix(self, counter, prefix):
         """
         given a prefix, initiate counter x (len(prefix) +1) processes
-        :param counter:
-        :param prefix:
         :return:
         """
         procs_holder = []
@@ -622,7 +509,7 @@ class LearnerBp:
         constraints_init.append(procs_holder[0][0] == fst(self.actions_smt[prefix[0]]))
         for k in range(1, len(prefix)):
             constraints_init.append(
-                procs_holder[0][0] == Int(f'{prefix[:k]}_{str(counter)}_{0}_{0}'))  # note - newly added
+                procs_holder[0][0] == Int(f'{prefix[:k]}_{str(counter)}_{0}_{0}'))
             self.constraints_total_for_procs.append(Int(f'{prefix[:k]}_{str(counter)}_{0}_{0}'))
         return constraints_init, procs_holder
 
@@ -633,14 +520,12 @@ class LearnerBp:
         :param act_indexes: array of all actions that are feasible from the new unknown state
         :return:
         """
-
         for act in act_indexes:
             if act not in self.known_actions:
-                # print(f"known create {act}")
                 self.known_actions.append(act)
                 self.actions_smt[act] = Int(f'{act}')
         new_state_index = max(self.bp.actions) + 1
-        if new_state_index not in self.known_states:  # note - newly added, was without the if, always the inside of if happend
+        if new_state_index not in self.known_states:
             self.known_states.append(new_state_index)
             self.states_smt[new_state_index] = Int(str(new_state_index))
         self.bp.actions[new_state_index] = {act_index: -1 for act_index in act_indexes}
@@ -656,75 +541,46 @@ class LearnerBp:
             if any(nested_dict.values())
         }
         self.options_holder = filtered_dict
+        pass
 
     # ------------------------------------- SCENARIOS --------------------------------------
     def deal_with_possibilities(self):
-        """
-        for each counter of procs, deal with the given possibilities
-        all problematic characteristic word for a given counter -> solve them
-        {str: [[(int:from_state, int: land_state)]]} == prefix, where prefix[-1] is the action,
-        list of 'must for a given option' each sub-list is a permutation of actions/receivers that must be taken,
-       and sometimes there is a sub-sub-list that describe the 'free' options, this that need to join on eof the
-       existing options.
-        """
-        print(f"CURR SITUATION: ")
-        # print(f"actions: {self.bp.actions},\n rec: {self.bp.receivers}")
-        print(f"OPTION HOLDER---- {self.options_holder}")
-        print(f"smt actions ---- {self.actions_smt}")
-        print(f"smt states ---- {self.states_smt}")
-        print("self bp actions ", self.bp.actions)
-        print("self bp receivers ", self.bp.receivers)
         constraints1 = []
         self.not_in_same_state = list(set(self.not_in_same_state))
         for (a1, a2) in self.not_in_same_state:
             self.smt_constraint_copy.append(fst(self.actions_smt[a1]) != fst(self.actions_smt[a2]))
 
         self.fsend_behaviours = list(set(self.fsend_behaviours))
-        # print("fsend behavior ", self.fsend_behaviours)
         for (a, b) in self.fsend_behaviours:
             self.smt_constraint_copy.append(fsend(self.actions_smt[a]) == self.states_smt[b])
-        # print("fsend_behaviours_by_acts ", self.fsend_behaviours_by_acts)
+
         for (a, b) in self.fsend_behaviours_by_acts:
             self.smt_constraint_copy.append(fsend(self.actions_smt[a]) == fst(self.actions_smt[b]))
 
         self.fst_behaviours = list(set(self.fst_behaviours))
-        # print("self.fst_behaviours ", self.fst_behaviours)
         for (a, b) in self.fst_behaviours:
             self.smt_constraint_copy.append(fst(a) == b)
 
-        # print("self.known_states: ", self.known_states)
         SMT2 = Solver()
         SMT2.set(unsat_core=True)
         SMT2.add(And(*self.smt_constraint_copy))
         self.basic_const_smt(constraints1)
         SMT2.add(And(*constraints1))
         self.proc_const_smt(SMT2)
-        print("statistics for the last check method...")
-        print("CONST1")
-        # with open("constraints_output.txt", "w") as file:
-        #     for constraint in SMT2.assertions():
-        #         file.write(str(constraint.sexpr()) + "\n")
-        # for constraint in SMT2.assertions():
-        #     print(constraint)
-        print("checking sat")
-        # SMT2.add(fsend(self.actions_smt['b'])==fst(self.actions_smt['a']))
         begin_time = time.perf_counter()
         if SMT2.check() == unsat:
             end_time = time.perf_counter()
             self.solution['solve_SMT_time'] = end_time - begin_time
             smt_core_val = SMT2.unsat_core()
-            print(len(smt_core_val))
             for state in self.states_smt:
                 print(f" state{state} {self.states_smt[state] in smt_core_val}")
             print("NO SMT SOLUTION")
-
             all_acts_list = list(set(list(get_positive_alphabet(self.modified_full_cs['positive'])) +
                                      list(get_positive_alphabet(self.modified_full_cs['negative']))))
             i = 0
-            while i < self.cutoff:
+            while i < 2*self.cutoff:
                 i += 1
                 not_seen_act = list(set(alphabet) - set(all_acts_list))[0]
-                # print("not_seen_act:", not_seen_act)
                 all_acts_list = all_acts_list + [not_seen_act]
                 self.create_new_state_for_new_action(not_seen_act)
                 self.bp.update_self_loops(self.bp.receivers)
@@ -737,19 +593,11 @@ class LearnerBp:
                 self.basic_const_smt(constraints1)
                 SMT3.add(And(*constraints1))
                 self.proc_const_smt(SMT3)
-                # SMT2.add(fst(self.actions_smt['e']) == fst(self.actions_smt['f']))
-                print("statistics for the last check method...")
-                print(f"CONST {i}")
-                # with open(f"constraints_output{i}.txt", "w") as file:
-                #     for constraint in SMT3.assertions():
-                #         file.write(str(constraint.sexpr()) + "\n")
-                # for constraint in SMT2.assertions():
-                #     print(constraint)
+
                 copied_actions = copy.deepcopy(self.bp.actions)
                 copied_receivers = copy.deepcopy(self.bp.receivers)
                 self.ret_origin_self_bp = Bp.BP_class(len(copied_actions), copied_actions, self.bp.initial_state,
                                                       copied_receivers)
-                print("checking sat")
                 begin_time = time.perf_counter()
                 if SMT3.check() == unsat:
                     end_time = time.perf_counter()
@@ -771,10 +619,8 @@ class LearnerBp:
                     if model != []:
                         self.states_and_actions_translation_smt(get_key_by_value, model, states_translation_smt)
                     states_values = list(set(states_translation_smt.values()))
-                    print("states_values: ", states_values)
-                    print(f"before bp: acts:{self.bp.actions}, res: {self.bp.receivers}")
+
                     self.dill_with_duplicated_smt_values(states_translation_smt, states_values)
-                    print(f"after bp: acts:{self.bp.actions}, res: {self.bp.receivers}")
 
                     self.solution['output_BP'] = f'states: {len(set(self.bp.actions))},\nactions: {self.bp.actions},\n' \
                                                  f'initial: {self.bp.initial_state},\n' \
@@ -803,13 +649,8 @@ class LearnerBp:
             copied_actions = copy.deepcopy(self.bp.actions)
             copied_receivers = copy.deepcopy(self.bp.receivers)
             duplicated_self_bp = Bp.BP_class(len(copied_actions), copied_actions, 0, copied_receivers)
-            print(f"duplicated_self_bp {duplicated_self_bp}")
             states_values = list(set(states_translation_smt.values()))
-            print("states_values: ", states_values)
-            print("states_translation_smt: ", states_translation_smt)
-            print(f"before bp: acts:{self.bp.actions}, res: {self.bp.receivers}")
             self.dill_with_duplicated_smt_values(states_translation_smt, states_values)
-            print(f"after bp: acts:{self.bp.actions}, res: {self.bp.receivers}")
 
             self.solution['output_BP'] = f'states: {len(set(self.bp.actions))},\nactions: {self.bp.actions},\n' \
                                          f'initial: {self.bp.initial_state},\n' \
@@ -820,10 +661,6 @@ class LearnerBp:
             copied_receivers = copy.deepcopy(self.bp.receivers)
             self.ret_origin_self_bp = Bp.BP_class(len(copied_actions), copied_actions, self.bp.initial_state,
                                                   copied_receivers)
-            print(f"ret_origin_self_bp {self.ret_origin_self_bp}")
-            """'amount_of_states_in_minimal_output': 0,
-                         'minimal_output_BP': '',
-                         'minimal_solve_SMT_time': 0.0"""
 
             if len(self.bp.actions) == 2:  # already minimal..
                 self.solution[
@@ -834,9 +671,6 @@ class LearnerBp:
                 self.solution['minimal_solve_SMT_time'] = 0
             else:
                 begin_time = time.perf_counter()
-                print("self.known_states: ", self.known_states)
-                print("self.states_smt: ", self.states_smt.values())
-                print("self.states_smt: ", list(self.states_smt.values()))
                 model = self.minimal_distinct_values(begin_time, 1, list(self.states_smt.values()),
                                                      And(*self.smt_constraint_copy))
 
@@ -848,18 +682,13 @@ class LearnerBp:
                 # in case there are duplicated values in states_translation_smt, that means that states can be merged
 
                 states_values = list(set(states_translation_smt.values()))
-                print("states_values minimal: ", states_values)
-                print(f"before bp minimal: acts:{self.bp.actions}, res: {self.bp.receivers}")
                 self.dill_with_duplicated_smt_values(states_translation_smt, states_values)
-                print(f"after bp minimal : acts:{self.bp.actions}, res: {self.bp.receivers}")
 
                 self.solution[
                     'minimal_output_BP'] = f'states: {len(set(self.bp.actions))},\nactions: {self.bp.actions},\n' \
                                            f'initial: {self.bp.initial_state},\n' \
                                            f'receivers: {clean_receivers(self.bp.receivers)}'
                 self.solution['amount_of_states_in_minimal_output'] = len(set(self.bp.actions) - {-1})
-
-        # _, _, self.solution['right_output'] = equivalent_bp(self.real_bp, self.bp, False)
         pass
 
     def dill_with_duplicated_smt_values(self, states_translation_smt, states_values):
@@ -869,15 +698,11 @@ class LearnerBp:
         :param states_values:
         :return:
         """
-        print("states_translation_smt:", states_translation_smt)
-        print("states_values:", states_values)
         for sv in states_values:
             keys = get_keys_by_value(states_translation_smt, sv)
             if len(keys) == 1:
                 continue
             else:
-                print("set(keys):", set(keys))
-                print("min(keys):", min(keys))
                 duplicated_keys = list(set(keys) - {min(keys)})
                 for k in duplicated_keys:
                     if k in self.bp.actions:
@@ -892,34 +717,27 @@ class LearnerBp:
                     for act_s in self.bp.receivers[o_s]:
                         if self.bp.receivers[o_s][act_s] in duplicated_keys:
                             self.bp.receivers[o_s][act_s] = min(keys)
+        pass
 
     def states_and_actions_translation_smt(self, get_key_by_value, model, states_translation_smt):
         self.known_states = list(set(self.known_states))
         for state in self.known_states:
-            print(
-                f"state: {state} int(model[self.states_smt[state]].as_long()): {int(model[self.states_smt[state]].as_long())}")
             states_translation_smt[state] = int(model[self.states_smt[state]].as_long())
-        print("states_translation_smt:: ", states_translation_smt)
         action_translation_smt = dict()
         for action in self.known_actions:
             action_translation_smt[action] = model[self.actions_smt[action]].as_long()
-            print(f"look at: action {action}: {model[self.actions_smt[action]].as_long()}")
         new_bp = BP_class(len(list(states_translation_smt.values())), dict(), self.bp.initial_state, dict())
         for act in self.known_actions:
-            print(f"234:: act {act} in known actions {self.known_actions}")
             self.bp.update_action(
                 get_key_by_value(states_translation_smt, model.eval(fst(self.actions_smt[act])).as_long()),
                 act, get_key_by_value(states_translation_smt, model.evaluate(fsend(self.actions_smt[act])).as_long()))
-            # new_bp.update_self_loops(new_bp.receivers)
             new_bp.update_action(
                 get_key_by_value(states_translation_smt, model.eval(fst(self.actions_smt[act])).as_long()),
                 act, get_key_by_value(states_translation_smt, model.evaluate(fsend(self.actions_smt[act])).as_long()))
             new_bp.update_self_loops(new_bp.receivers)
-            print(
-                f"23:: for act {act} from state {get_key_by_value(states_translation_smt, model.eval(fst(self.actions_smt[act])).as_long())}, landing is {get_key_by_value(states_translation_smt, model.evaluate(fsend(self.actions_smt[act])).as_long())}")
+
         for act in self.known_actions:
             for state in self.known_states:
-                print(f"state {state}, and act:{act} receivers:")
                 self.bp.update_receivers(
                     state, act, get_key_by_value(states_translation_smt,
                                                  model.eval(
@@ -931,8 +749,6 @@ class LearnerBp:
                                                      frec(self.actions_smt[act], self.states_smt[state])).as_long()),
                     True)
 
-        print("self bp: before new_bp\n", self.bp)
-        print("new_bp: ", new_bp)
         self.bp.actions = new_bp.actions
         self.bp.receivers = new_bp.receivers
         self.bp.initial_state = new_bp.initial_state
@@ -964,12 +780,10 @@ class LearnerBp:
         actions2 = set(''.join(list(plus_one_learn.keys())))
 
         union_result = actions.union(actions2)
-        # print(f"actions44 {actions}")
         for act in union_result:
             if act in self.known_actions:
                 continue
             else:
-                # print(f"known a {act}")
                 self.known_actions.append(act)
                 self.actions_smt[act] = Int(str(act))
         pass
@@ -983,7 +797,6 @@ class LearnerBp:
         actions = set()  # all the actions in those words
         for s in plus_one_learn_neg:
             actions.update(set(s))
-        # print(f"actions54 {actions}")
         for act in actions:
             if act in self.known_actions:
                 continue
@@ -1049,10 +862,6 @@ class LearnerBp:
         for existing_value in states:
             solver.add(Or(*[existing_value == new_value for new_value in new_values]))
 
-        # with open(f"constraints_output22_{n}.txt", "w") as file:
-        #    for constraint in solver.assertions():
-        #        file.write(str(constraint.sexpr()) + "\n")
-
         # Check for satisfiability
         if solver.check() == unsat:
             return self.minimal_distinct_values(begin_time, n + 1, states, curr_const)
@@ -1072,26 +881,21 @@ class LearnerBp:
         """
         sorted_dict = dict(sorted(current_seq_learn_pos.items(), key=lambda x: (len(x[0]), x[0])))
 
-        # print("current_seq_learn_pos: ", sorted_dict)
         action_builder = dict()
         act_to_state = dict()
         known_actions = set()
         state_index = 1
         for pref in sorted_dict:
             if pref == '':
-                # print("action_builder: ", action_builder)
                 action_builder[self.bp.initial_state] = dict((x, -1) for x in sorted_dict.get(pref))  # make sure
-                # print("action_builder: ", action_builder)
                 for x in sorted_dict.get(pref):
                     known_actions.add(x)
                     act_to_state[x] = self.bp.initial_state
-                # print("act_to_state: ", act_to_state)
             else:
                 '''We have only a single processes, then if a single actions is known then the rest of actions are 
                 too going there '''
                 is_known, act = has_common_letter(sorted_dict.get(pref), known_actions)
                 if is_known:
-                    # print("action_builder: before: ", action_builder)
                     if action_builder.get(act_to_state[pref[-1]]) is None:
                         action_builder[act_to_state[pref[-1]]] = dict([(pref[-1], act_to_state[act])])
                         for x in sorted_dict.get(pref):
@@ -1111,11 +915,6 @@ class LearnerBp:
                             for x in sorted_dict.get(pref):
                                 known_actions.add(x)
                                 act_to_state[x] = act_to_state[act]
-                    # print("action_builder: after: ", action_builder)
-                    # for x in sorted_dict.get(pref):
-                    #     known_actions.add(x)
-                    #     act_to_state[x] = act_to_state[pref[-1]]
-                    # print("act_to_state: ", act_to_state)
                 else:  # not a known state
                     if action_builder.get(act_to_state[pref[-1]]) is None:
                         action_builder[act_to_state[pref[-1]]] = dict([(pref[-1], state_index)])
@@ -1134,14 +933,9 @@ class LearnerBp:
                             for x in sorted_dict.get(pref):
                                 known_actions.add(x)
                                 act_to_state[x] = state_index
-                    # print("action_builder: ", action_builder)
-                    # print("act_to_state: ", act_to_state)
                     state_index += 1
-        # print("FINAL action_builder: ", action_builder)
-        # print("Actions before:\n", self.bp.actions)
         for org_state in action_builder:
             self.bp.actions[org_state] = action_builder.get(org_state)
-        # print("Actions after:\n", self.bp.actions)
         """ updating SAT """
         for org_state in self.bp.actions:
             if org_state not in self.known_states:
@@ -1915,8 +1709,3 @@ if __name__ == '__main__':
     print("new_row:", new_row)
     df = pd.concat([df, new_row], ignore_index=True)
     df.to_csv('curr128_1_output_1_after_fix_3.csv', index=False)
-
-# TODO: 06/04/24, Need to keep cleaning, the part on the end was making sure all problematic part from before are
-#   resolved, from file min_failed or wrong_output...
-#   the part in the CLUSTER are for the paper, still running, making sure how it goes...
-#   and in general go over the paper and make sure regarding the feedbacks what can be changed.. --- Talk to Dana ! ---
