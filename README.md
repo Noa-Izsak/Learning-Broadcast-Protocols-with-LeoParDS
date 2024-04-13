@@ -5,7 +5,21 @@ It contains all the necesery code and inforamtion for using the code as showen i
 
 More details on the algorithm and Broadcast Protocols (BPs) can be found in the paper, the rest of this file will explain the input and output file format as well as how to use our program.
 
-## BPGen - BP_generator
+## BPGen - BP_generator:
+  ```python
+class BP_generator:
+    def __init__(self, min_number_of_states, min_number_of_act, max_number_of_states=None, max_number_of_act=None):
+      ...
+      self.number_of_act = na #as defined in the function
+      self.number_of_states = ns #as defined in the function
+      self.bp: BP_class = self.generate()
+      
+    def generate(self) -> BP_class:
+      ...
+      # returnes a BP object that has @number_of_states states and each state
+      # has a unique action so it wouldn't be hidden and another @number_of_act
+      # randomly distributed actions
+```
   Creating a random BP with number of states between 2 and 3 and number of actions between 1 and 2
   
   ```python
@@ -25,9 +39,34 @@ An illustration of this BP is as follows:
 
 ![image](https://github.com/Noa-Izsak/Learning-Broadcast-Protocols-with-LeoParDS/assets/62952579/73fc305e-f98f-48fb-a27e-2959d976b1da)
 
-## CSGen - 
-- paper
-- gyd
+## CSGen 
+### CSGen - run_cs_to_a_limit
+
+Under ```BP_Learn.py```, you can find the following function:
+  ```python
+def run_cs_to_a_limit(self, cutoff_limit, sample_limit):
+```
+The BP that we create this CS for is $self.bp$, cutoff_limit is ${\overline{\mbox{M}}_{p}}$ from the paper, represnting a bound on the number of processes.
+This is, in order to ensure termination also in case the given BP does not have a cutoff.
+We also have as input a $sample_limit$, in case you run on a computer with low memory resources, you can bound the size of the sample so if it is too high it will stop.
+This function is more direct as there are less inputs to tune, if you do want to make it more personal for diffrent uses see the fucntion below.
+
+### CSGen - run_subsume_cs
+Under ```BP_Learn.py```, you can find the following function:
+  ```python
+def run_subsume_cs(self, words_to_add, are_words_given, cutoff_lim=None, time_lim=None):
+      """
+        a run that add amount of words_to_add to the cs and run it
+        :param time_lim: If given, this is time limitation in sec
+        :param cutoff_lim: If given, then cutoff limitation for running
+        :param are_words_given: A boolean value representing whether we create a sample (not necessarily a CS)
+                                for words_to_add amount or is the words are already given to us
+        :param words_to_add: Number of words if are_words_given==False or the set of words if are_words_given==True
+      """
+      ...
+```
+As in the previous run function, the BP that we create this CS for is $self.bp$, cutoff_lim is ${\overline{\mbox{M}}_{p}}$ from the paper, represnting a bound on the number of processes. This run function create a CS for the BP by the algorithm that we created and then potantialy padding it with additional words ($words_to_add$), either create it by itself or randomly generate new words (depends on $are_words_given$).
+
 
 ## C
 
