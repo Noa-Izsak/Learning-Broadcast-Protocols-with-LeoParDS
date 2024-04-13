@@ -48,7 +48,7 @@ def run_cs_to_a_limit(self, cutoff_limit, sample_limit):
 ```
 The BP that we create this CS for is $self.bp$, cutoff_limit is ${\overline{\mbox{M}}_{p}}$ from the paper, represnting a bound on the number of processes.
 This is, in order to ensure termination also in case the given BP does not have a cutoff.
-We also have as input a $sample_limit$, in case you run on a computer with low memory resources, you can bound the size of the sample so if it is too high it will stop.
+We also have as input a *sample_limit*, in case you run on a computer with low memory resources, you can bound the size of the sample so if it is too high it will stop.
 This function is more direct as there are less inputs to tune, if you do want to make it more personal for diffrent uses see the fucntion below.
 
 ### CSGen - run_subsume_cs
@@ -57,20 +57,50 @@ Under ```BP_Learn.py```, you can find the following function:
 def run_subsume_cs(self, words_to_add, are_words_given, cutoff_lim=None, time_lim=None):
       """
         a run that add amount of words_to_add to the cs and run it
-        :param time_lim: If given, this is time limitation in sec
-        :param cutoff_lim: If given, then cutoff limitation for running
+        :param words_to_add: Number of words if are_words_given==False or the set of words if are_words_given==True
         :param are_words_given: A boolean value representing whether we create a sample (not necessarily a CS)
                                 for words_to_add amount or is the words are already given to us
-        :param words_to_add: Number of words if are_words_given==False or the set of words if are_words_given==True
+        :param cutoff_lim: If given, then cutoff limitation for running
+        :param time_lim: If given, this is time limitation in sec
       """
       ...
 ```
-As in the previous run function, the BP that we create this CS for is $self.bp$, cutoff_lim is ${\overline{\mbox{M}}_{p}}$ from the paper, represnting a bound on the number of processes. This run function create a CS for the BP by the algorithm that we created and then potantialy padding it with additional words ($words_to_add$), either create it by itself or randomly generate new words (depends on $are_words_given$).
+As in the previous run function, the BP that we create this CS for is $self.bp$, *cutoff_lim* is ${\overline{\mbox{M}}_{p}}$ from the paper, represnting a bound on the number of processes. This run function create a CS for the BP by the algorithm that we created and then potantialy padding it with additional words (*words_to_add*), either create it by itself or randomly generate new words (depends on *are_words_given*).
 
 
-## C
+## RSGen
+
+### RSGen - run_no_cs
+Under ```BP_Learn.py```, you can find the following function:
+```python
+ def run_no_cs(self, words_to_add, words_are_given, maximal_procs=20, maximal_length=20):
+  """
+  If words_are_given is True, then words_to_add are sample dictionary.
+  Otherwise, words_to_add is an int representing the amount of words to add to the sample we create.
+  :param words_to_add: int if words_are_given=False, otherwise a dictionary of sample
+  :param words_are_given: boolean value
+     ...
+  """
+  ...
+```
+This sample (that is not necessarily a CS), is for $self.bp$. *words_to_add* represents $F_w$ from the paper, *maximal_procs* represents $\overline{\mbox{M}}{p}$ and *maximal_length* represnts $\overline{\mbox{M}}_{l}$. Where 20 is the defaultive value for both of them.
 
 
+### RSGen - run_no_cs_pos_perc
+Under ```BP_Learn.py```, you can find the following function:
+```python
+    def run_no_cs_pos_perc(self, words_to_add, pos_perc, length_limit, procs_limit):
+        """
+        :param words_to_add: int amount of words to add
+        :param pos_perc: positive % of total words
+        :param length_limit: longest word limit
+        :param procs_limit: maximal procs limit
+        """
+      ...
+```
+This sample (that is not necessarily a CS), is for $self.bp$. *words_to_add* represents $F_w$ from the paper, *pos_perc* represents $F_r$ from the paper, value between $[0,1]$, *procs_limit* represents $\overline{\mbox{M}}{p}$ and *length_limit* represnts $\overline{\mbox{M}}_{l}$. Where 20 is the defaultive value for both of them.
+
+### An Example:
 
 ## About Broadcast Protocols (in short BPs):
 
@@ -88,5 +118,5 @@ The system is correct only if it satisfies the specification for any number $n$ 
 ### Formal definition - BP
 
 A **broadcast protocol** $B=(S,s_0,L,R)$ consists of a finite set of states $S$ with an initial state $s_0 \in S$, a set of labels $L$
-and a transition relation $R\subseteq S \times L \times S$, where $L = \{a!!, a?? \mid a \in A\}$ for some set of actions $A$. A transition labeled with $a!!$ is a broadcast **sending  transition**, and a transition labeled with $a??$ is a broadcast **receiving transition**, also called a **response**.
+and a transition relation $R\subseteq S \times L \times S$, where $L = \{ a!!, a?? \mid a \in A \}$ for some set of actions $A$. A transition labeled with $a!!$ is a broadcast **sending  transition**, and a transition labeled with $a??$ is a broadcast **receiving transition**, also called a **response**.
 
