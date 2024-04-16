@@ -42,17 +42,17 @@ An illustration of this BP is as follows:
 ## CSGen 
 ### CSGen - run_cs_to_a_limit
 
-Under ```BP_Learn.py```, you can find the following function:
+Under ```BP_Learn.py``` in class ```BP_run```, you can find the following function:
   ```python
 def run_cs_to_a_limit(self, cutoff_limit, sample_limit):
 ```
 The BP that we create this CS for is $self.bp$, cutoff_limit is ${\overline{\mbox{M}}_{p}}$ from the paper, represnting a bound on the number of processes.
 This is, in order to ensure termination also in case the given BP does not have a cutoff.
-We also have as input a *sample_limit*, in case you run on a computer with low memory resources, you can bound the size of the sample so if it is too high it will stop.
+We also have as input a ```sample_limit```, in case you run on a computer with low memory resources, you can bound the size of the sample so if it is too high it will stop.
 This function is more direct as there are less inputs to tune, if you do want to make it more personal for diffrent uses see the fucntion below.
 
 ### CSGen - run_subsume_cs
-Under ```BP_Learn.py```, you can find the following function:
+Under ```BP_Learn.py``` in class ```BP_run```, you can find the following function:
   ```python
 def run_subsume_cs(self, words_to_add, are_words_given, cutoff_lim=None, time_lim=None):
       """
@@ -65,8 +65,52 @@ def run_subsume_cs(self, words_to_add, are_words_given, cutoff_lim=None, time_li
       """
       ...
 ```
-As in the previous run function, the BP that we create this CS for is $self.bp$, *cutoff_lim* is ${\overline{\mbox{M}}_{p}}$ from the paper, represnting a bound on the number of processes. This run function create a CS for the BP by the algorithm that we created and then potantialy padding it with additional words (*words_to_add*), either create it by itself or randomly generate new words (depends on *are_words_given*).
+As in the previous run function, the BP that we create this CS for is $self.bp$, ```cutoff_lim``` is ${\overline{\mbox{M}}_{p}}$ from the paper, represnting a bound on the number of processes. This run function create a CS for the BP by the algorithm that we created and then potantialy padding it with additional words (```words_to_add```), either create it by itself or randomly generate new words (depends on ```are_words_given```).
 
+### CSGen - run_no_cs
+Under ```BP_Learn.py``` in class ```BP_run```, you can find the following function:
+```python
+    def run_no_cs(self, words_to_add, words_are_given, maximal_procs=20, maximal_length=20):
+        """
+        if words_are_given==True then words_to_add are sample dictionary.
+        otherwise, words_to_add is an int of number of words to add.
+        a run that add amount of words_to_add to the cs and run it
+        ...
+        """
+        char_set = {'positive': {}, 'negative': {}}
+        start_time = time.perf_counter()
+        if not words_are_given:
+            char_set, words_added = self.create_sample(words_to_add, char_set, maximal_procs, maximal_length)
+        else:
+            char_set = words_to_add
+            words_added = words_to_add
+        end_time = time.perf_counter()
+
+        learn_bp = LearnerBp(char_set, self.bp, end_time - start_time, words_added)
+        ...
+        learn_bp.learn()
+        ...
+```
+Where the function ```create_sample``` expand the given sample (in our case, ```char_set``` which is e,pty) in ```words_to_add``` amount where ```maximal_procs``` is the maximal number of processes to be considered in the sample resp. ```maximal_length``` for the length of the sample.
+
+```learn_bp``` is a LearnerBp object that the learning procedure will happen upon. sending it to ```learn_bp.learn()``` starts the learning procedure.
+
+Defaultively, ```.learn()``` is for BPInf, if we want BPInfMin we will call it with ```.learn(minimal=True)```.
+
+### CSGen - run_no_cs_pos_perc
+Under ```BP_Learn.py``` in class ```BP_run```, you can find the following function:
+```python
+    def run_no_cs_pos_perc(self, words_to_add, pos_perc, length_limit, procs_limit, minimal=False):
+        """
+        :param words_to_add: int amount of words to add
+        :param pos_perc: positive % of total words
+        :param length_limit: longest word limit
+        :param procs_limit: maximal procs limit
+        :return:
+        """
+        ...
+```
+Similar to the above, but with the pos_perc option.
 
 ## RSGen
 
@@ -122,6 +166,28 @@ $S=\{(aabab,2,F),(abbb,2,F), (baa,3,T), (bba,2,F), (ba,1,F)\}$.
 
 ### BPInf
 
+
+
+## A running example:
+
+```python
+  ...
+  cutoff = 30
+  timer_c = 1*3600 # one hour in seconds
+  bp = BP_generator(3, 3, max_number_of_act=4)
+  learner = BP_run(bp)
+  bp_acts, bp_rec, origin_actions, rec_non_minimal, solution = learner.run_subsume_cs(0, False, cutoff, timer_c) 
+  ...
+  bp_learned = BP_class(len(bp_acts), bp_acts, 0, bp_rec)
+  solution['right_output'] = equivalent_bp(bp, bp_learned, solution['cutoff'])
+  print(f"scenario {scenario_number - 1}: the two BP's are equivalent?:",
+          equivalent_bp(bp, bp_learned, solution['cutoff'])) # checking equivalents
+  ...
+```
+Where ```learner.run_subsume_cs(0, False, cutoff, timer_c)```
+which is equivalent to the CS development by the algorithm that was developed for maximal ```cutoff``` and time_bounding of ```timer_c```
+
+***More examples and explanation about the fucntions can be find in the code***
 
 ## About Broadcast Protocols (in short BPs):
 
