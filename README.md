@@ -70,7 +70,8 @@ As in the previous run function, the BP that we create this CS for is $self.bp$,
 
 ## RSGen
 
-### RSGen - run_no_cs
+### RSGen - no positive ratio
+#### RWGen - run_no_cs
 Under ```BP_Learn.py```, you can find the following function:
 ```python
  def run_no_cs(self, words_to_add, words_are_given, maximal_procs=20, maximal_length=20):
@@ -86,11 +87,14 @@ Under ```BP_Learn.py```, you can find the following function:
 This sample (that is not necessarily a CS), is for $self.bp$. *words_to_add* represents $F_w$ from the paper, *maximal_procs* represents $\overline{\mbox{M}}{p}$ and *maximal_length* represnts $\overline{\mbox{M}}_{l}$. Where 20 is the defaultive value for both of them.
 
 
-### RSGen - run_no_cs_pos_perc
+### RSGen - with positive ratio
+#### RPWGen - run_no_cs_pos_perc
 Under ```BP_Learn.py```, you can find the following function:
 ```python
     def run_no_cs_pos_perc(self, words_to_add, pos_perc, length_limit, procs_limit):
         """
+        pos_perc * words_to_add is the number of positive words in the returned smaple,
+        the rest, i.e., (1-pos_perc)*words_to_add is the negative words, which are drawn uniformally just like in run_no_cs
         :param words_to_add: int amount of words to add
         :param pos_perc: positive % of total words
         :param length_limit: longest word limit
@@ -101,6 +105,23 @@ Under ```BP_Learn.py```, you can find the following function:
 This sample (that is not necessarily a CS), is for $self.bp$. *words_to_add* represents $F_w$ from the paper, *pos_perc* represents $F_r$ from the paper, value between $[0,1]$, *procs_limit* represents $\overline{\mbox{M}}{p}$ and *length_limit* represnts $\overline{\mbox{M}}_{l}$. Where 20 is the defaultive value for both of them.
 
 ### An Example:
+
+Given the folloeing BP:
+
+![image](https://github.com/Noa-Izsak/Learning-Broadcast-Protocols-with-LeoParDS/assets/62952579/c51bd762-488d-4c5e-9d1d-3c8a36d7bf4b)
+
+let's call this BP $B_1$, so for RSGen with this BP and parameters: 
+  - $F_w=5$,
+  - $\overline{\mbox{M}}_{l}=5$,
+  - $\overline{\mbox{M}}{p}=3$
+  - 
+The output could be the sample
+$S=\{(aabab,2,F),(abbb,2,F), (baa,3,T), (bba,2,F), (ba,1,F)\}$.
+
+## BPInf and BPInfMin
+
+### BPInf
+
 
 ## About Broadcast Protocols (in short BPs):
 
