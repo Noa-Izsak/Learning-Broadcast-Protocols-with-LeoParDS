@@ -114,7 +114,7 @@ let's call this BP $B_1$, so for RSGen with this BP and parameters:
   - $F_w=5$,
   - $\overline{\mbox{M}}_{l}=5$,
   - $\overline{\mbox{M}}{p}=3$
-  - 
+
 The output could be the sample
 $S=\{(aabab,2,F),(abbb,2,F), (baa,3,T), (bba,2,F), (ba,1,F)\}$.
 
