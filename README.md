@@ -74,7 +74,7 @@ As in the previous run function, the BP that we create this CS for is $self.bp$,
 
 ### RSGen - no positive ratio
 #### RWGen - run_no_cs
-Under ```BP_Learn.py``` in class ```BP_run```, you can find the following function:
+Under ```BP_run.py``` in class ```BP_run```, you can find the following function:
 ```python
   def run_no_cs(self, words_to_add, words_are_given, maximal_procs=20, maximal_length=20, minimal=False):
         """
@@ -112,7 +112,7 @@ This sample (that is not necessarily a CS), is for $self.bp$. ``words_to_add`` r
 
 ### RSGen - with positive ratio
 #### RPWGen - run_no_cs_pos_perc
-Under ```BP_Learn.py``` in class ```BP_run```, you can find the following function:
+Under ```BP_run.py``` in class ```BP_run```, you can find the following function:
 ```python
     def run_no_cs_pos_perc(self, words_to_add, pos_perc, length_limit=20, procs_limit=20, minimal=False):
         """
