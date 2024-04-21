@@ -228,7 +228,11 @@ The csv file will look as follows:
 We can also do so for a given BP, written according to our structure
 The following BP $B_1$ is written as follows:
 
+![image](https://github.com/Noa-Izsak/Learning-Broadcast-Protocols-with-LeoParDS/assets/62952579/c5cab17e-1770-40fe-8b3f-373acfc29a4c)
+
 ``bp1 = BP_class(2, {0: {'a': 1}, 1: {'b': 0}}, 0, {0: {'a': 1, 'b': 0}, 1: {'a': 1, 'b': 0}})``
+
+I.e., it has $2$ states, action $a$ is broadacsted from state $0$ and landed in state $1$, and action $b$ is broadacsted from state $1$ and land on state $0$. And from both states, the receiving transition $a??$ land on state $1$ while the receiving transition  on action $b$, which is $b??$ land on state $0$.
 
 A fucntion that do so is ``run_a_given_bp_example(bp1)`` for a given bp
 
