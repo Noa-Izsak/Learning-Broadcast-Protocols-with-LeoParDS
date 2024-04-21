@@ -3,7 +3,7 @@ import random
 import pandas as pd
 
 from BP_Class import BP_class
-from BP_run import BP_run
+from BP_Run import *
 
 from BP_gen import BP_generator, act_names, equivalent_bp, amount_of_actions, single_loop, eliminate_no_cutoff
 

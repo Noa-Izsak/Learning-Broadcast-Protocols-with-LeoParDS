@@ -3,7 +3,7 @@ import time
 from z3 import *
 
 import BP_Class as Bp
-from BP_run import running_no_cs
+from BP_Run import *
 from State_Vector import learn_from_characteristic_set
 from Trie import Trie
 from BP_Class import BP_class
