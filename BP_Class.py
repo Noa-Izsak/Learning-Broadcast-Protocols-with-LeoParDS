@@ -1,8 +1,6 @@
 import random
 import time
 
-from State_Vector import State_vector, cont
-
 
 def number_of_procs_in_vector(state_vector):
     procs = 0
@@ -61,8 +59,6 @@ class BP_class:
         :param landing: lending state for acting
         :return:
         """
-        print(f"self.action {self.actions}")
-        print(f"self.response {self.receivers}")
         if self.actions.get(org_state) is not None:
             self.actions.get(org_state)[action] = landing
         else:
@@ -113,11 +109,7 @@ class BP_class:
         """
         state_vector = {x: 0 for x in self.actions}
         state_vector[self.initial_state] = number_of_proc
-        #print("self.actions: ", self.actions)
         for act in set_of_actions:
-            # wanting to check if there is a proc in the state the current action is from
-            #print(f"act {act}, state vector {state_vector}")
-            #print(f"self.get_state_index_by_action({act}) {self.get_state_index_by_action(act)}")
             if state_vector.get(self.get_state_index_by_action(act)) >= 1:
                 state_vector = self.act_action(state_vector, act)  # act the action and check the next
                 continue
@@ -230,7 +222,7 @@ class BP_class:
                                 dict_ret['negative'] = list(set(dict_ret['negative'] + dict_ret11['negative']))
                 else:  # is 0
                     for act in self.actions[head]:
-                        if list(current_heads.get(state_vector)) == []:  # is empty
+                        if not list(current_heads.get(state_vector)):  # is empty
                             neg_ret.append(act)
                         else:
                             [neg_ret.append(''.join(x) + act) for x in list(current_heads.get(state_vector))]
@@ -329,9 +321,6 @@ class BP_class:
         for v in vectors_to_append:
             known_vectors.add(v)
 
-        # print(f"END: set_ret: {set_ret}, neg_ret: {neg_ret}")
-        # print(f"known vec: {known_vectors}")
-
         return self.characteristic_set(known_actions, all_acts, known_vectors, new_current_heads, set_ret, neg_ret)
 
     def get_all_chars(self):
@@ -350,8 +339,6 @@ class BP_class:
         state_vector = [0] * len(self.actions)
         state_vector[self.initial_state] = procs
         state_vector = tuple(state_vector)
-        # print(f"self.actions: {self.actions}")
-        # print("get_all_chars: ", self.get_all_chars())
         all_acts = self.get_all_chars()
         return self.characteristic_set_part2(set(), all_acts, set(), {state_vector: {}}, [], [])
 
@@ -393,8 +380,7 @@ class BP_class:
         curr = self.find_characteristic_set_multi_procs(counter)
         characteristic_sets['positive'][counter] = list(set(curr['positive']))
         characteristic_sets['negative'][counter] = list(set(curr['negative']))
-        tot_pos_curr = set()
-        tot_neg_curr = set()
+
         tot_pos_new = set(curr['positive'])
         tot_neg_new = set(curr['negative'])
 
@@ -404,8 +390,7 @@ class BP_class:
             print("counter ", counter)
             curr['positive'] = next_set['positive']
             curr['negative'] = next_set['negative']
-            tot_pos_curr = tot_pos_new.copy()
-            tot_neg_curr = tot_neg_new.copy()
+
             curr_time = time.perf_counter()
             if len(curr['positive']) + len(curr['negative']) > sample_limit:
                 return characteristic_sets, float(curr_time - start_time)
@@ -424,7 +409,7 @@ class BP_class:
         end_time = time.perf_counter()
         return characteristic_sets, float(end_time - start_time)
 
-    def find_all_characteristic_sets_for_learning(self, cutoff_limit, cs_creation_time_limit):
+    def find_all_characteristic_sets_for_learning(self, cutoff_limit, cs_creation_time_limit, words_limit=50000):
         """
         for the given BP -self , find all the characteristic_sets
         :return: {number of proc : characteristic_sets} for all number of procs until maximal number required
@@ -437,12 +422,9 @@ class BP_class:
         number_of_states = len(self.actions)
         start_time = time.perf_counter()
         curr = self.find_characteristic_set_multi_procs(counter)
-        # print(f"curr['positive'] {counter}: {curr['positive']}")
-        # print(f"curr['negative'] {counter}: {curr['negative']}")
         characteristic_sets['positive'][counter] = list(set(curr['positive']))
         characteristic_sets['negative'][counter] = list(set(curr['negative']))
-        tot_pos_curr = set()
-        tot_neg_curr = set()
+
         tot_pos_new = set(curr['positive'])
         tot_neg_new = set(curr['negative'])
 
@@ -452,11 +434,10 @@ class BP_class:
             print("counter ", counter)
             curr['positive'] = next_set['positive']
             curr['negative'] = next_set['negative']
-            tot_pos_curr = tot_pos_new.copy()
-            tot_neg_curr = tot_neg_new.copy()
+
             curr_time = time.perf_counter()
-            if float(curr_time - start_time) > cs_creation_time_limit or len(curr['positive']) > max(150000,
-                                                                                                     15000 * counter):
+            if float(curr_time - start_time) > cs_creation_time_limit or \
+                    (len(curr['positive']) + len(curr['negative']) > words_limit):
                 return characteristic_sets, -1
             characteristic_sets['positive'][counter] = list(set(curr['positive']))
             characteristic_sets['negative'][counter] = list(set(curr['negative']))
@@ -491,34 +472,3 @@ class BP_class:
         for e in non_empty_entries:
             acts |= set(self.actions[e].keys())
         return acts
-
-    def random_find_words(self, amount):
-        set_of_sample = dict()
-        set_of_sample['positive'] = dict()
-        set_of_sample['negative'] = dict()
-        word_length = random.randint(1, 8)
-        procs = [1, 2, 3, 4, 5]
-        actions = []
-        for state in self.actions:
-            for a in self.actions[state]:
-                actions.append(a)
-
-        for index in range(amount):
-            proc_amount = random.choices(
-                procs, weights=(0.4, 0.3, 0.2, 0.1, 0.1), k=5)[0]
-            # print(proc_amount)
-            word = []
-            for i in range(word_length):
-                word.append(random.choice(actions))
-            if self.is_feasible(proc_amount, word):
-                if set_of_sample['positive'].get(proc_amount) is not None:
-                    set_of_sample['positive'][proc_amount].append(''.join(word))
-                else:
-                    set_of_sample['positive'][proc_amount] = [''.join(word)]
-            else:
-                # print(set_of_sample['negative'].get(proc_amount))
-                if set_of_sample['negative'].get(proc_amount) is not None:
-                    set_of_sample['negative'][proc_amount].append(''.join(word))
-                else:
-                    set_of_sample['negative'][proc_amount] = [''.join(word)]
-        return set_of_sample, 10

@@ -62,12 +62,12 @@ def contain(info, char):
 def learn_two(characteristic_set, processes, positive_info: {str: str}, negative_info: {str: str}):
     """
     looking on the sequences received, finding out about what group of actions are origin in the same state
+    :param negative_info: 
+    :param positive_info: 
     :param characteristic_set: given be find_characteristic_set
     :param processes: number of procs we currently have (so for positive we will look on every thing less and for neg every thing greater)
-    :param info: the set of actions so far {string of actions that get as to the current state : feasible now actions}
     :return: info
     """""
-    # print(f"cs::: {characteristic_set}, counter is {processes}")
     pos_info = []
     for pos_counter in characteristic_set['positive']:
         if pos_counter <= processes:
@@ -96,16 +96,6 @@ def learn_two(characteristic_set, processes, positive_info: {str: str}, negative
                             else:
                                 if not (letter in positive_info.get(prefix)):
                                     positive_info[prefix] = positive_info.get(prefix) + letter
-    # neg_info = []
-    # neg_curr_info = []  # the list relevant for this number of processes only
-    # for neg_counter in characteristic_set['negative']:
-    #     if neg_counter > processes:  # Only greater equal amount of procs is relevant
-    #         for neg_word in characteristic_set['negative'][neg_counter]:
-    #             neg_info.append(neg_word)
-    #     elif neg_counter == processes:
-    #         for neg_word in characteristic_set['negative'][neg_counter]:
-    #             neg_info.append(neg_word)
-    #             neg_curr_info.append(neg_word)
     neg_info = [neg_word for neg_counter in characteristic_set['negative'] if neg_counter >= processes
                 for neg_word in characteristic_set['negative'][neg_counter]]
 
@@ -113,28 +103,6 @@ def learn_two(characteristic_set, processes, positive_info: {str: str}, negative
                      for neg_word in characteristic_set['negative'][neg_counter]]
     neg_info = list(set(neg_info))
     neg_curr_info = list(set(neg_curr_info))
-    # print("neg info ", neg_info)
-    """
-    Given a negative word $w in A^*$ such that $w=u cdot a$ s.t. $u in A^*$ and $a in A$
-    such that u is a prefix of a word in pos_info
-    we want to use this information that after u, the state-vector_u can be in a state where a is feasible from
-    
-    Furthermore, if no prefix in pos+info exists to represent u then the whole world w should be able
-    I.e. if |w|=1 then act w is infeasible from teh initial state
-    otherwise (|w|>1) then there exists some possible empty sequence of w that is feasible that afterwords the next 
-    act is infeasible ... 
-    """
-    # for curr_word in neg_info:
-    #     prefix = curr_word[:-1]
-    #     for other_word in neg_info:
-    #         if len(other_word) == len(curr_word) and other_word.startswith(prefix):
-    #             letter = other_word[len(curr_word)-1]
-    #             if negative_info.get(prefix) is None:
-    #                 negative_info[prefix] = letter
-    #             else:
-    #                 if letter not in negative_info.get(prefix):
-    #                     negative_info[prefix] = negative_info.get(prefix) + letter
-    # return positive_info, negative_info
 
     return positive_info, pos_curr_info, neg_info, neg_curr_info
 

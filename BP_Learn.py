@@ -1,23 +1,17 @@
-import random
 import pandas as pd
+import time
 from z3 import *
 
 import BP_Class as Bp
+from BP_run import running_no_cs
 from State_Vector import learn_from_characteristic_set
 from Trie import Trie
 from BP_Class import BP_class
 
+from BP_gen import alphabet
+from helpers_functions import *
+
 print(z3.get_version_string())  # Was tested for 4.12.2
-
-a_val = 97
-z_val = 122
-A_val = 65
-Z_val = 90
-act_names = [str(chr(c)) for c in range(a_val, z_val + 1)] + [str(chr(c)) for c in range(A_val, Z_val + 1)]
-
-alphabet = [str(chr(c)) for c in range(a_val, z_val + 1)] + [str(chr(c)) for c in range(A_val, Z_val + 1)] + [
-    str(chr(n)) for n in range(0, 10)] + ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '+', '=', '[',
-                                          ']', '{', '}', '|', '~', '`', ',']
 
 twenty_min = 1200
 fifteen_min = 900
@@ -34,72 +28,6 @@ fst = Function('fst', IntSort(), IntSort())  # Given an action, return the state
 ''' recursively use the frec, recFrec(word, state), so where this state will land after responding to all of w.
     for a word w=ua. recfrec('',s)=s. recfrec(w,s)=frec(a, recfrec(u,s))'''
 recFrec = RecFunction('rec_frec', IntSort(), IntSort())
-
-
-def get_key_by_value(dictionary, target_value):
-    sorted_items = sorted(dictionary.items(), key=lambda x: x[0])
-    for key, value in sorted_items:
-        if value == target_value:
-            return key
-    return None
-
-
-def get_keys_by_value(dictionary, target_value):
-    keys_with_value = [key for key, value in dictionary.items() if value == target_value]
-    return keys_with_value
-
-
-def has_common_letter(actions, known_actions):
-    """
-    :param actions: feasible actions after "prefix"
-    :param known_actions: already seen actions
-    :return:
-    """
-    for a in actions:
-        if a in known_actions:
-            return True, a
-    return False, None
-
-
-def remove_duplicates(dictionary: dict()):
-    unique_values = set()
-    keys_to_remove = []
-
-    for key, value in dictionary.items():
-        if value <= unique_values:
-            keys_to_remove.append(key)
-        else:
-            unique_values = unique_values | value
-
-    for key in keys_to_remove:
-        del dictionary[key]
-
-    return dictionary
-
-
-def get_unique_letters(list_negative_words):
-    """
-    :param list_negative_words: list of negative examples for 1 proc
-    :return: the set of all the unique letters
-    """
-    all_letters = set()
-    for value in list_negative_words:
-        all_letters.update(set(value))
-
-    return all_letters
-
-
-def filter_strings_by_length(strings, n):
-    return [s for s in strings if len(s) == n]
-
-
-def get_positive_alphabet(pos_char_set):
-    alpha = set()
-    flat_pos_list = [string for sublist in list(pos_char_set.values()) for string in sublist]
-    flat_pos_list = list(set(flat_pos_list))
-    for value in flat_pos_list:
-        alpha.update(set(value))
-    return alpha
 
 
 class LearnerBp:
@@ -130,7 +58,7 @@ class LearnerBp:
         self.characteristic_set = None
         self.negative_cs = None
         self.modify_cs(self.full_cs)
-
+        # print("modified cs :", self.modified_full_cs)
         # max number of processes in the positive and negative examples is the cutoff
         list_pos = list(characteristic_sets['positive'].keys())
         if not list_pos:  # list_pos == []
@@ -200,10 +128,10 @@ class LearnerBp:
                         all_acts.add(nl)
                         if cant_be_together.get(nl) is None:
                             cant_be_together[nl] = []
-                for c in range(1, counter + 1):  # counter +1 -> we access at most to counter index
-                    if self.characteristic_set.get(c) is None:
+                for c_s in range(1, counter + 1):  # counter +1 -> we access at most to counter index
+                    if self.characteristic_set.get(c_s) is None:
                         continue
-                    for pos_w in self.characteristic_set[c]:
+                    for pos_w in self.characteristic_set[c_s]:
                         for lis in pos_w:
                             if lis not in all_acts:
                                 all_acts.add(lis)
@@ -231,7 +159,7 @@ class LearnerBp:
             for o_a in other_acts:
                 self.not_in_same_state.append((act, o_a))
 
-        all_first_letters = [pos_w[0] for c in self.characteristic_set for pos_w in self.characteristic_set[c]]
+        all_first_letters = [pos_w[0] for c_s in self.characteristic_set for pos_w in self.characteristic_set[c_s]]
         all_first_letters = list(set(all_first_letters))
         all_negative_examples = []
         for i in self.negative_cs:
@@ -269,7 +197,7 @@ class LearnerBp:
         else:
             return None, all_acts, all_first_letters
 
-    def learn(self):
+    def learn(self, minimal=False):
         if self.solution['failed_converged']:
             return
         ''' 
@@ -277,7 +205,7 @@ class LearnerBp:
         '''
         current_seq_learn_pos, current_learn_pos, current_geq_learn_neg, current_learn_neg = learn_from_characteristic_set(
             self.modified_full_cs, 1)
-        all_first_letters = [pos_w[0] for c in self.characteristic_set for pos_w in self.characteristic_set[c]]
+        all_first_letters = [pos_w[0] for c_s in self.characteristic_set for pos_w in self.characteristic_set[c_s]]
         all_first_letters = list(set(all_first_letters))
         if self.characteristic_set.get(1) is None:
             if all_first_letters:  # not an empty list, there are some positive examples in the sample
@@ -289,8 +217,15 @@ class LearnerBp:
                 all_acts_list = list_neg_letters + [not_seen_act]
                 self.bp = Bp.BP_class(2, {0: {not_seen_act: 0}, 1: {neg_el: 1 for neg_el in list_neg_letters}}, 0,
                                       {0: {a_el: 0 for a_el in all_acts_list}, 1: {a_el: 1 for a_el in all_acts_list}})
+                for act in all_acts_list:
+                    if act not in self.known_actions:
+                        self.known_actions.append(act)
+                        self.actions_smt[act] = Int(f'{act}')
+                for s in [0, 1]:
+                    self.known_states.append(s)
+                    self.states_smt[s] = Int(str(s))
                 self.clean_option_holders()
-                self.deal_with_possibilities()
+                self.deal_with_possibilities(minimal, positive=False)
                 return
         states, all_acts, all_first_letters = self.a_and_b_are_separated_constraints()
 
@@ -322,12 +257,19 @@ class LearnerBp:
             self.bp.update_self_loops(self.bp.receivers)
 
         self.bp.update_self_loops(self.bp.receivers)
-        self.first_round2(current_seq_learn_pos, current_learn_neg)
+        self.main_round(current_seq_learn_pos, current_learn_neg, minimal)
         print(f"this is the BP:\nacts:{self.bp.actions}\nrec:{self.bp.receivers}")
         print(f"SMT values constrains")
         pass
 
-    def first_round2(self, current_learn_pos, current_learn_neg):
+    def main_round(self, current_learn_pos, current_learn_neg, minimal):
+        """
+        The Main procedure that creates the constraints based on the sample
+        :param current_learn_pos:
+        :param current_learn_neg:
+        :param minimal: whether we invoke BPInf (minimal=False) of BPInfMin (minimal=True)
+        :return:
+        """
         list_pos = list(self.modified_full_cs['positive'].keys())
         if not list_pos:  # list_pos == []
             list_pos = 0
@@ -349,14 +291,13 @@ class LearnerBp:
                 for w_neg in current_learn_neg:
                     ''' word is infeasible for 1 proc '''
                     # there is an *and* between word[:prefix_len] is feasible and word[prefix_len] is infeasible
-                    # after words and for all options, there is an *or* NOTE: I'm here! -> 23-12-23 14:32
+                    # after words and for all options, there is an *or*
                     total_neg_constraints = self.negative_sample_constraint_builder(counter, w_neg)
                     if total_neg_constraints:
                         self.smt_constraint_copy.append(Or(*total_neg_constraints))
                 continue
-            plus_one_seq_learn_pos, plus_one_learn_pos, plus_one_geq_learn_neg, plus_one_learn_neg = learn_from_characteristic_set(
-                self.modified_full_cs,
-                counter)
+            plus_one_seq_learn_pos, plus_one_learn_pos, plus_one_geq_learn_neg, plus_one_learn_neg = \
+                learn_from_characteristic_set(self.modified_full_cs, counter)
             # to this amount of processes
             self.add_actions_to_smt(plus_one_seq_learn_pos)
             for prefix in plus_one_seq_learn_pos:
@@ -414,7 +355,7 @@ class LearnerBp:
 
             current_learn_pos = plus_one_seq_learn_pos
         self.clean_option_holders()
-        self.deal_with_possibilities()
+        self.deal_with_possibilities(minimal)
         return
 
     def negative_sample_constraint_builder(self, counter, w_neg):
@@ -544,7 +485,12 @@ class LearnerBp:
         pass
 
     # ------------------------------------- SCENARIOS --------------------------------------
-    def deal_with_possibilities(self):
+    def deal_with_possibilities(self, minimal, positive=True):
+        """
+        :param minimal: are we looking for minimal
+        :param positive: whether there are positive examples
+        :return:
+        """
         constraints1 = []
         self.not_in_same_state = list(set(self.not_in_same_state))
         for (a1, a2) in self.not_in_same_state:
@@ -554,6 +500,7 @@ class LearnerBp:
         for (a, b) in self.fsend_behaviours:
             self.smt_constraint_copy.append(fsend(self.actions_smt[a]) == self.states_smt[b])
 
+        self.fsend_behaviours_by_acts = list(set(self.fsend_behaviours_by_acts))
         for (a, b) in self.fsend_behaviours_by_acts:
             self.smt_constraint_copy.append(fsend(self.actions_smt[a]) == fst(self.actions_smt[b]))
 
@@ -572,24 +519,22 @@ class LearnerBp:
             end_time = time.perf_counter()
             self.solution['solve_SMT_time'] = end_time - begin_time
             smt_core_val = SMT2.unsat_core()
-            for state in self.states_smt:
-                print(f" state{state} {self.states_smt[state] in smt_core_val}")
-            print("NO SMT SOLUTION")
+            print("unsat - for this number of actions, hence, we are looking on a sample that is not "
+                  "sufficiently complete and we need to add new actions")
             all_acts_list = list(set(list(get_positive_alphabet(self.modified_full_cs['positive'])) +
                                      list(get_positive_alphabet(self.modified_full_cs['negative']))))
             i = 0
-            while i < 2*self.cutoff:
+            while i < 2 * self.cutoff:
                 i += 1
                 not_seen_act = list(set(alphabet) - set(all_acts_list))[0]
-                all_acts_list = all_acts_list + [not_seen_act]
+                all_acts_list.append(not_seen_act)
                 self.create_new_state_for_new_action(not_seen_act)
                 self.bp.update_self_loops(self.bp.receivers)
-
-                print(f"the bp: {self.bp}")
 
                 SMT3 = Solver()
                 SMT3.set(unsat_core=True)
                 SMT3.add(And(*self.smt_constraint_copy))
+                constraints1 = []
                 self.basic_const_smt(constraints1)
                 SMT3.add(And(*constraints1))
                 self.proc_const_smt(SMT3)
@@ -602,15 +547,18 @@ class LearnerBp:
                 if SMT3.check() == unsat:
                     end_time = time.perf_counter()
                     self.solution['solve_SMT_time'] = end_time - begin_time
-                    print("NO SMT SOLUTION ", i)
+                    print(f"unsat for extra {i} actions ")
+                    print(f"the bp so far {self.bp}")
+                    print(f"the cs info: {self.modified_full_cs}\n"
+                          f"the cutoff: {self.cutoff}")
+                    print("known states: ", self.known_states)
+                    print("known actions: ", self.known_actions)
                     continue
                 else:
                     end_time = time.perf_counter()
                     self.solution['solve_SMT_time'] = end_time - begin_time
-                    print("FINE")
+                    print("SAT")
 
-                    print("Current constraints:")
-                    print("states:::")
                     print("self known actions ", self.known_actions)
                     print("self known states ", self.known_states)
                     model = SMT3.model()
@@ -622,26 +570,30 @@ class LearnerBp:
 
                     self.dill_with_duplicated_smt_values(states_translation_smt, states_values)
 
-                    self.solution['output_BP'] = f'states: {len(set(self.bp.actions))},\nactions: {self.bp.actions},\n' \
-                                                 f'initial: {self.bp.initial_state},\n' \
+                    self.solution['output_BP'] = f'states: {len(set(self.bp.actions))},\nactions: {self.bp.actions},' \
+                                                 f'\ninitial: {self.bp.initial_state},\n' \
                                                  f'receivers: {clean_receivers(self.bp.receivers)}'
                     self.solution['amount_of_states_in_output'] = len(set(self.bp.actions) - {-1})
-                    i = self.cutoff
+                    i = 2 * self.cutoff
+                    if minimal:
+                        ''' Then we want to return a minimal representation '''
+                        copied_actions = copy.deepcopy(self.bp.actions)
+                        copied_receivers = copy.deepcopy(self.bp.receivers)
+                        duplicated_self_bp = Bp.BP_class(len(copied_actions), copied_actions, 0, copied_receivers)
+                        self.bp_inf_minimal(duplicated_self_bp, positive)
             pass
 
         else:
             end_time = time.perf_counter()
             self.solution['solve_SMT_time'] = end_time - begin_time
-            print("FINE")
+            print("SAT")
 
-            print("Current constraints:")
-            print("states:::")
             print("self known actions ", self.known_actions)
             print("self known states ", self.known_states)
             model = SMT2.model()
 
             states_translation_smt = dict()
-            if model != []:
+            if model != [] and positive:
                 self.states_and_actions_translation_smt(get_key_by_value, model, states_translation_smt)
 
             # in case there are duplicated values in states_translation_smt, that means that states can be merged
@@ -661,35 +613,33 @@ class LearnerBp:
             copied_receivers = copy.deepcopy(self.bp.receivers)
             self.ret_origin_self_bp = Bp.BP_class(len(copied_actions), copied_actions, self.bp.initial_state,
                                                   copied_receivers)
-
-            if len(self.bp.actions) == 2:  # already minimal..
-                self.solution[
-                    'minimal_output_BP'] = f'states: {len(set(self.bp.actions))},\nactions: {self.bp.actions},\n' \
-                                           f'initial: {self.bp.initial_state},\n' \
-                                           f'receivers: {clean_receivers(self.bp.receivers)}'
-                self.solution['amount_of_states_in_minimal_output'] = len(set(self.bp.actions) - {-1})
-                self.solution['minimal_solve_SMT_time'] = 0
-            else:
-                begin_time = time.perf_counter()
-                model = self.minimal_distinct_values(begin_time, 1, list(self.states_smt.values()),
-                                                     And(*self.smt_constraint_copy))
-
-                states_translation_smt = dict()
-                self.bp = duplicated_self_bp
-                if model != []:
-                    self.states_and_actions_translation_smt(get_key_by_value, model, states_translation_smt)
-
-                # in case there are duplicated values in states_translation_smt, that means that states can be merged
-
-                states_values = list(set(states_translation_smt.values()))
-                self.dill_with_duplicated_smt_values(states_translation_smt, states_values)
-
-                self.solution[
-                    'minimal_output_BP'] = f'states: {len(set(self.bp.actions))},\nactions: {self.bp.actions},\n' \
-                                           f'initial: {self.bp.initial_state},\n' \
-                                           f'receivers: {clean_receivers(self.bp.receivers)}'
-                self.solution['amount_of_states_in_minimal_output'] = len(set(self.bp.actions) - {-1})
+            print("minimal", minimal)
+            if minimal:
+                if len(self.bp.actions) == 2:  # already minimal..
+                    self.solution[
+                        'minimal_output_BP'] = f'states: {len(set(self.bp.actions))},\nactions: {self.bp.actions},\n' \
+                                               f'initial: {self.bp.initial_state},\n' \
+                                               f'receivers: {clean_receivers(self.bp.receivers)}'
+                    self.solution['amount_of_states_in_minimal_output'] = len(set(self.bp.actions) - {-1})
+                    self.solution['minimal_solve_SMT_time'] = 0
+                else:
+                    self.bp_inf_minimal(duplicated_self_bp, positive)
         pass
+
+    def bp_inf_minimal(self, duplicated_self_bp, is_positive=True):
+        begin_time = time.perf_counter()
+        model = self.minimal_distinct_values(begin_time, 1, list(self.states_smt.values()),
+                                             And(*self.smt_constraint_copy))
+        states_translation_smt = dict()
+        self.bp = duplicated_self_bp
+        if model != [] and is_positive:
+            self.states_and_actions_translation_smt(get_key_by_value, model, states_translation_smt)
+        states_values = list(set(states_translation_smt.values()))
+        self.dill_with_duplicated_smt_values(states_translation_smt, states_values)
+        self.solution['minimal_output_BP'] = f'states: {len(set(self.bp.actions))},\nactions: {self.bp.actions},\n' \
+                                             f'initial: {self.bp.initial_state},\n' \
+                                             f'receivers: {clean_receivers(self.bp.receivers)}'
+        self.solution['amount_of_states_in_minimal_output'] = len(set(self.bp.actions) - {-1})
 
     def dill_with_duplicated_smt_values(self, states_translation_smt, states_values):
         """
@@ -719,7 +669,7 @@ class LearnerBp:
                             self.bp.receivers[o_s][act_s] = min(keys)
         pass
 
-    def states_and_actions_translation_smt(self, get_key_by_value, model, states_translation_smt):
+    def states_and_actions_translation_smt(self, get_key_by_val, model, states_translation_smt):
         self.known_states = list(set(self.known_states))
         for state in self.known_states:
             states_translation_smt[state] = int(model[self.states_smt[state]].as_long())
@@ -729,24 +679,24 @@ class LearnerBp:
         new_bp = BP_class(len(list(states_translation_smt.values())), dict(), self.bp.initial_state, dict())
         for act in self.known_actions:
             self.bp.update_action(
-                get_key_by_value(states_translation_smt, model.eval(fst(self.actions_smt[act])).as_long()),
-                act, get_key_by_value(states_translation_smt, model.evaluate(fsend(self.actions_smt[act])).as_long()))
+                get_key_by_val(states_translation_smt, model.eval(fst(self.actions_smt[act])).as_long()),
+                act, get_key_by_val(states_translation_smt, model.evaluate(fsend(self.actions_smt[act])).as_long()))
             new_bp.update_action(
-                get_key_by_value(states_translation_smt, model.eval(fst(self.actions_smt[act])).as_long()),
-                act, get_key_by_value(states_translation_smt, model.evaluate(fsend(self.actions_smt[act])).as_long()))
+                get_key_by_val(states_translation_smt, model.eval(fst(self.actions_smt[act])).as_long()),
+                act, get_key_by_val(states_translation_smt, model.evaluate(fsend(self.actions_smt[act])).as_long()))
             new_bp.update_self_loops(new_bp.receivers)
 
         for act in self.known_actions:
             for state in self.known_states:
                 self.bp.update_receivers(
-                    state, act, get_key_by_value(states_translation_smt,
-                                                 model.eval(
-                                                     frec(self.actions_smt[act], self.states_smt[state])).as_long()),
+                    state, act, get_key_by_val(states_translation_smt,
+                                               model.eval(
+                                                   frec(self.actions_smt[act], self.states_smt[state])).as_long()),
                     True)
                 new_bp.update_receivers(
-                    state, act, get_key_by_value(states_translation_smt,
-                                                 model.eval(
-                                                     frec(self.actions_smt[act], self.states_smt[state])).as_long()),
+                    state, act, get_key_by_val(states_translation_smt,
+                                               model.eval(
+                                                   frec(self.actions_smt[act], self.states_smt[state])).as_long()),
                     True)
 
         self.bp.actions = new_bp.actions
@@ -924,7 +874,8 @@ class LearnerBp:
                     else:
                         was_it_define = action_builder[act_to_state[pref[-1]]].get(pref[-1]) is not None
                         if was_it_define and (action_builder[act_to_state[pref[-1]]][pref[-1]] != -1):
-                            '''Then this action already knows where it goes, we only need to update the new action origin'''
+                            ''' Then this action already knows where it goes, we only need to 
+                            update the new action origin '''
                             for x in sorted_dict.get(pref):
                                 known_actions.add(x)
                                 act_to_state[x] = action_builder[act_to_state[pref[-1]]][pref[-1]]
@@ -955,709 +906,14 @@ class LearnerBp:
         pass
 
 
-def clean_receivers(receivers):
-    new_rec = {}
-    for entry in receivers:
-        if entry == -1:
-            continue
-        new_rec[entry] = {}
-        for act in receivers.get(entry):
-            (land, status) = receivers.get(entry).get(act)
-            new_rec[entry][act] = land
-    return new_rec
-
-
-def clean_char_set(char_set):
-    actions_in_pos = []
-    actions_in_neg = []
-    for counter in char_set['positive']:
-        for w_pos in char_set['positive'][counter]:
-            actions_in_pos = actions_in_pos + list(w_pos)
-    actions_in_pos = list(set(actions_in_pos))
-    for counter in char_set['negative']:
-        for w_neg in char_set['negative'][counter]:
-            actions_in_neg = actions_in_neg + list(w_neg)
-    actions_in_neg = list(set(actions_in_neg))
-    actions_to_remove = []
-    for a_n in actions_in_neg:
-        if a_n not in actions_in_pos:
-            actions_to_remove.append(a_n)
-    to_remove = dict()
-    for counter in char_set['negative']:
-        to_remove[counter] = []
-        for w_neg in char_set['negative'][counter]:
-            for act in w_neg:
-                if act in actions_to_remove:
-                    to_remove[counter].append(w_neg)
-                    break
-    for c in to_remove:
-        char_set['negative'][c] = [x for x in char_set['negative'][c] if x not in to_remove[c]]
-    return char_set, actions_to_remove
-
-
-import concurrent.futures
-import time
-
-
-def get_alphabet(char_set):
-    alpha = set()
-    flat_pos_list = [string for sublist in list(char_set['positive'].values()) for string in sublist]
-    flat_pos_list = list(set(flat_pos_list))
-    flat_neg_list = [string for sublist in list(char_set['negative'].values()) for string in sublist]
-    flat_neg_list = list(set(flat_neg_list))
-    for value in flat_pos_list:
-        alpha.update(set(value))
-
-    for value in flat_neg_list:
-        alpha.update(set(value))
-    return alpha
-
-
-class BP_run:
-    def __init__(self, bp_1: Bp.BP_class):
-        self.bp = bp_1
-
-    def run(self):
-        fifteen_min = 900
-        twenty_min = 1200
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            future = executor.submit(self.bp.find_all_characteristic_sets_for_learning, 30, twenty_min)
-            try:
-                result = future.result(timeout=twenty_min)  # Set the desired timeout in seconds
-                char_set, CS_time = result
-                print("charset[pos]:\n", char_set['positive'])
-                print("charset[neg]:\n", char_set['negative'])
-            except concurrent.futures.TimeoutError:
-                char_set, CS_time = {'positive': {}, 'negative': {}}, -1
-            finally:
-                if CS_time != -1:
-                    char_set, _ = clean_char_set(char_set)
-                learn_bp = LearnerBp(char_set, self.bp, CS_time,
-                                     {'positive': {}, 'negative': {}})
-                if learn_bp.solution['failed_converged']:
-                    return None, None, learn_bp.solution
-                learn_bp.learn()
-                clean_rec = clean_receivers(learn_bp.bp.receivers)
-                print(f"learner actions = {learn_bp.bp.actions}\nlearner receivers = {learn_bp.bp.receivers}\n"
-                      f"clean receivers: {clean_rec}")
-                return learn_bp.bp.actions, clean_rec, learn_bp.solution
-
-    def run_no_cs(self, words_to_add, words_are_given, maximal_procs=20, maximal_length=20):
-        """
-        if words_are_given==True then words_to_add are sample dictionary.
-        otherwise, words_to_add is an int of number of words to add.
-        a run that add amount of words_to_add to the cs and run it
-        :param words_to_add: int if words_are_given=False, otherwise a dictionary of sample
-        :param words_are_given: boolean value
-        :param maximal_procs: maximal allowed length of word in the sample
-        :param maximal_length:
-        :return:
-        """
-        char_set = {'positive': {}, 'negative': {}}
-        start_time = time.perf_counter()
-        if not words_are_given:
-            char_set, words_added = self.create_sample(words_to_add, char_set, maximal_procs, maximal_length)
-        else:
-            char_set = words_to_add
-            words_added = words_to_add
-        end_time = time.perf_counter()
-
-        learn_bp = LearnerBp(char_set, self.bp, end_time - start_time, words_added)
-        if learn_bp.solution['failed_converged']:
-            return None, None, learn_bp.solution, words_added
-        learn_bp.learn()
-        clean_rec = clean_receivers(learn_bp.bp.receivers)
-        clean_rec_non_minimal = clean_receivers(learn_bp.ret_origin_self_bp.receivers)
-        print(f"learner actions = {learn_bp.bp.actions}\nlearner receivers = {learn_bp.bp.receivers}\n"
-              f"clean receivers: {clean_rec}")
-        print(
-            f"non minimal:: learner actions = {learn_bp.ret_origin_self_bp.actions}\nlearner receivers = {learn_bp.ret_origin_self_bp.receivers}\n"
-            f"clean receivers: {clean_rec_non_minimal}")
-        return learn_bp.bp.actions, clean_rec, learn_bp.ret_origin_self_bp.actions, clean_rec_non_minimal, learn_bp.solution, words_added
-
-    def run_no_cs_pos_perc(self, words_to_add, pos_perc, length_limit, procs_limit):
-        """
-        :param words_to_add: int amount of words to add
-        :param pos_perc: positive % of total words
-        :param length_limit: longest word limit
-        :param procs_limit: maximal procs limit
-        :return:
-        """
-        char_set = {'positive': {}, 'negative': {}}
-        start_time = time.perf_counter()
-        char_set, words_added = self.create_sample_pos_perc(words_to_add, char_set, pos_perc, length_limit, procs_limit)
-        end_time = time.perf_counter()
-        learn_bp = LearnerBp(char_set, self.bp, end_time - start_time, words_added)
-        if learn_bp.solution['failed_converged']:
-            return None, None, learn_bp.solution, words_added
-        learn_bp.learn()
-        clean_rec = clean_receivers(learn_bp.bp.receivers)
-        clean_rec_non_minimal = clean_receivers(learn_bp.ret_origin_self_bp.receivers)
-        print(f"learner actions = {learn_bp.bp.actions}\nlearner receivers = {learn_bp.bp.receivers}\n"
-              f"clean receivers: {clean_rec}")
-        print(
-            f"non minimal:: learner actions = {learn_bp.ret_origin_self_bp.actions}\n"
-            f"learner receivers = {learn_bp.ret_origin_self_bp.receivers}\n"
-            f"clean receivers: {clean_rec_non_minimal}")
-        return learn_bp.bp.actions, clean_rec, learn_bp.ret_origin_self_bp.actions, clean_rec_non_minimal, learn_bp.solution, words_added
-
-    def run_cs_to_a_limit(self, cutoff_limit, sample_limit):
-        char_set, CS_time = {'positive': {}, 'negative': {}}, -1
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            future = executor.submit(self.bp.find_cs_to_a_limit, cutoff_limit, sample_limit)
-            try:
-                result = future.result(timeout=three_hours)
-                char_set, CS_time = result
-            except concurrent.futures.TimeoutError:
-                char_set, CS_time = {'positive': {}, 'negative': {}}, -1
-            finally:
-                cutoff = None
-                char_set, _ = clean_char_set(char_set)
-                learn_bp = LearnerBp(char_set, self.bp, CS_time, char_set, cutoff)
-                print("learn.bp.sol:", learn_bp.solution)
-                if learn_bp.solution['failed_converged']:
-                    return None, None, learn_bp.solution
-                learn_bp.learn()
-                clean_rec = clean_receivers(learn_bp.bp.receivers)
-                clean_rec_non_minimal = clean_receivers(learn_bp.ret_origin_self_bp.receivers)
-                print(f"learner actions = {learn_bp.bp.actions}\nlearner receivers = {learn_bp.bp.receivers}\n"
-                      f"clean receivers: {clean_rec}")
-                print(
-                    f"non minimal:: learner actions = {learn_bp.ret_origin_self_bp.actions}\n"
-                    f"learner receivers = {learn_bp.ret_origin_self_bp.receivers}\n"
-                    f"clean receivers: {clean_rec_non_minimal}")
-                return learn_bp.bp.actions, clean_rec, learn_bp.ret_origin_self_bp.actions, clean_rec_non_minimal, learn_bp.solution
-
-    def run_subsume_cs(self, words_to_add, are_words_given, cutoff_lim=None, time_lim=None):
-        """
-        a run that add amount of words_to_add to the cs and run it
-        :param time_lim: If given, this is time limitation in sec
-        :param cutoff_lim: If given, then cutoff limitation for running
-        :param are_words_given: A boolean value representing whether we create a sample (not necessarily a CS)
-        for words_to_add amount or is the words are already given to us
-        :param words_to_add: Number of words if are_words_given==False or the set of words if are_words_given==True
-        :return:
-        """
-        char_set, CS_time = {'positive': {}, 'negative': {}}, -1
-        fiftheen_hours = 15 * 3600
-        t = fiftheen_hours
-        c = 45
-        if cutoff_lim is not None:
-            c = cutoff_lim
-        if time_lim is not None:
-            t = time_lim
-        char_set, CS_time = self.bp.find_all_characteristic_sets_for_learning(c, t)
-        words_added = {'positive': {}, 'negative': {}}
-        cutoff = None
-        if CS_time != -1:
-            char_set, words_added, cutoff = self.increase_cs(words_to_add, char_set, are_words_given)
-        learn_bp = LearnerBp(char_set, self.bp, CS_time, words_added, cutoff)
-        if learn_bp.solution['failed_converged']:
-            return None, None, None, None, learn_bp.solution
-        learn_bp.learn()
-        clean_rec = clean_receivers(learn_bp.bp.receivers)
-        clean_rec_non_minimal = clean_receivers(learn_bp.ret_origin_self_bp.receivers)
-        print(f"learner actions = {learn_bp.bp.actions}\nlearner receivers = {learn_bp.bp.receivers}\n"
-              f"clean receivers: {clean_rec}")
-        print(
-            f"non minimal:: learner actions = {learn_bp.ret_origin_self_bp.actions}\n"
-            f"learner receivers = {learn_bp.ret_origin_self_bp.receivers}\n"
-            f"clean receivers: {clean_rec_non_minimal}")
-        return learn_bp.bp.actions, clean_rec, learn_bp.ret_origin_self_bp.actions, clean_rec_non_minimal, learn_bp.solution
-
-    def increase_cs(self, size_int, char_set, are_words_given):
-        """
-        add size_int more elements for the cs
-        :param are_words_given: boolean value, does the extra words are given
-        :param char_set: the CS
-        :param size_int: amount of samples to add or if 'are_words_given' is the dict_val
-        :return: the new CS
-        """
-        dict_val = dict()
-        dict_val['positive'] = dict()
-        dict_val['negative'] = dict()
-        cutoff = max(max(list(char_set['positive'].keys())), max(list(
-            char_set['negative'].keys())))
-        if are_words_given:
-            for pos_neg in size_int:
-                for proc in size_int[pos_neg]:
-                    for word in size_int[pos_neg][proc]:
-                        if proc not in char_set[pos_neg]:
-                            char_set[pos_neg][proc] = [word]
-                        else:
-                            if word in char_set[pos_neg][proc]:
-                                continue
-                            else:
-                                char_set[pos_neg][proc].append(word)
-            return char_set, size_int, cutoff
-        longest = ''  # the longest word in cs
-        for name_val in ['positive', 'negative']:
-            for procs in char_set[name_val]:
-                for word in char_set[name_val][procs]:
-                    if len(word) > len(longest):
-                        longest = word
-        longest_word = len(longest)
-        alphabet1 = get_alphabet(char_set)
-        pos_words_to_add = set()
-        neg_words_to_add = set()
-        for i in range(1, 2 * cutoff + 1):
-            dict_val['positive'][i] = []
-            dict_val['negative'][i] = []
-        # print("dict_val:", dict_val)
-        while len(pos_words_to_add) + len(neg_words_to_add) < size_int:
-            proc_amount = random.randint(1, 2 * cutoff)
-            word_len = random.randint(1, longest_word)
-            created_word = []
-            for _ in range(word_len):
-                created_word.append(random.choice(list(alphabet1)))
-            if self.bp.is_feasible(proc_amount, created_word):
-                if ''.join(created_word) in pos_words_to_add:
-                    continue
-                else:
-                    if proc_amount not in char_set['positive']:
-                        char_set['positive'][proc_amount] = [''.join(created_word)]
-                        pos_words_to_add.add(''.join(created_word))
-                        dict_val['positive'][proc_amount].append(''.join(created_word))
-                    else:
-                        if ''.join(created_word) in char_set['positive'][proc_amount]:
-                            continue
-                        else:
-                            char_set['positive'][proc_amount].append(''.join(created_word))
-                            pos_words_to_add.add(''.join(created_word))
-                            dict_val['positive'][proc_amount].append(''.join(created_word))
-            else:
-                if ''.join(created_word) in neg_words_to_add:
-                    continue
-                else:
-                    if proc_amount not in char_set['negative']:
-                        char_set['negative'][proc_amount] = [''.join(created_word)]
-                        neg_words_to_add.add(''.join(created_word))
-                        dict_val['negative'][proc_amount].append(''.join(created_word))
-                    else:
-                        if ''.join(created_word) in char_set['negative'][proc_amount]:
-                            continue
-                        else:
-                            char_set['negative'][proc_amount].append(''.join(created_word))
-                            neg_words_to_add.add(''.join(created_word))
-                            dict_val['negative'][proc_amount].append(''.join(created_word))
-        dict_val = {key: {inner_key: inner_value for inner_key, inner_value in value.items() if inner_value} for
-                    key, value in dict_val.items()}
-
-        return char_set, dict_val, cutoff
-
-    def create_sample_pos_perc(self, words_to_add, char_set, pos_perc, length_limit, procs_limit):
-        """
-        :param char_set: dict:{'positive': {}, 'negative': {}}
-        :param procs_limit: maximal procs limit
-        :param length_limit: longest word limit
-        :param pos_perc: positive % of total words
-        :param words_to_add: int amount of words to add
-        :return:
-        """
-        dict_val = dict()
-        dict_val['positive'] = dict()
-        dict_val['negative'] = dict()
-        longest_word = length_limit
-
-        alphabet1 = self.get_bp_alphabet()
-        pos_words_to_add = set()
-        neg_words_to_add = set()
-        for i in range(1, procs_limit + 1):
-            dict_val['positive'][i] = []
-            dict_val['negative'][i] = []
-
-        while len(pos_words_to_add) < words_to_add * pos_perc:
-            created_word = []
-            proc_amount = random.randint(1, procs_limit)
-            word_len = random.randint(1, longest_word)
-            state_vec = {i: 0 for i in self.bp.actions}
-            state_vec[self.bp.initial_state] = proc_amount
-            for _ in range(word_len):
-                feasible_set = self.bp.feasible_set(state_vec)
-                chosen_act = random.choice(list(feasible_set))
-                created_word.append(chosen_act)
-                state_vec = self.bp.act_action(state_vec, chosen_act)
-            if proc_amount not in char_set['positive']:
-                char_set['positive'][proc_amount] = [''.join(created_word)]
-                pos_words_to_add.add(''.join(created_word))
-                dict_val['positive'][proc_amount].append(''.join(created_word))
-            else:
-                if ''.join(created_word) in char_set['positive'][proc_amount]:
-                    continue
-                else:
-                    char_set['positive'][proc_amount].append(''.join(created_word))
-                    pos_words_to_add.add(''.join(created_word))
-                    dict_val['positive'][proc_amount].append(''.join(created_word))
-
-        while len(neg_words_to_add) < words_to_add * (1 - pos_perc):
-            proc_amount = random.randint(1, procs_limit)
-            word_len = random.randint(1, longest_word)
-            created_word = []
-            for _ in range(word_len):
-                created_word.append(random.choice(list(alphabet1)))
-            if self.bp.is_feasible(proc_amount, created_word):
-                continue
-            else:
-                if proc_amount not in char_set['negative']:
-                    char_set['negative'][proc_amount] = [''.join(created_word)]
-                    neg_words_to_add.add(''.join(created_word))
-                    dict_val['negative'][proc_amount].append(''.join(created_word))
-                else:
-                    if ''.join(created_word) in char_set['negative'][proc_amount]:
-                        continue
-                    else:
-                        char_set['negative'][proc_amount].append(''.join(created_word))
-                        neg_words_to_add.add(''.join(created_word))
-                        dict_val['negative'][proc_amount].append(''.join(created_word))
-        dict_val = {key: {inner_key: inner_value for inner_key, inner_value in value.items() if inner_value} for
-                    key, value in dict_val.items()}
-
-        return char_set, dict_val
-
-    def create_sample(self, size_int, char_set, maximal_procs, longest_word):
-        """
-        add size_int more elements for the cs
-        :param longest_word: longest word (a.k.a sequance) in the sample
-        :param maximal_procs:
-        :param char_set: the CS
-        :param size_int: amount of samples to add
-        :return: the new CS
-        """
-        dict_val = dict()
-        dict_val['positive'] = dict()
-        dict_val['negative'] = dict()
-
-        alphabet1 = self.get_bp_alphabet()
-        pos_words_to_add = set()
-        neg_words_to_add = set()
-        for i in range(1, 2 * maximal_procs + 1):
-            dict_val['positive'][i] = []
-            dict_val['negative'][i] = []
-        while len(pos_words_to_add) + len(neg_words_to_add) < size_int:
-            proc_amount = random.randint(1, 2 * maximal_procs)
-            word_len = random.randint(1, longest_word)
-            created_word = []
-            for _ in range(word_len):
-                created_word.append(random.choice(list(alphabet1)))
-            if self.bp.is_feasible(proc_amount, created_word):
-                if ''.join(created_word) in pos_words_to_add:
-                    continue
-                else:
-                    if proc_amount not in char_set['positive']:
-                        char_set['positive'][proc_amount] = [''.join(created_word)]
-                        pos_words_to_add.add(''.join(created_word))
-                        dict_val['positive'][proc_amount].append(''.join(created_word))
-                    else:
-                        if ''.join(created_word) in char_set['positive'][proc_amount]:
-                            continue
-                        else:
-                            char_set['positive'][proc_amount].append(''.join(created_word))
-                            pos_words_to_add.add(''.join(created_word))
-                            dict_val['positive'][proc_amount].append(''.join(created_word))
-            else:
-                if ''.join(created_word) in neg_words_to_add:
-                    continue
-                else:
-                    if proc_amount not in char_set['negative']:
-                        char_set['negative'][proc_amount] = [''.join(created_word)]
-                        neg_words_to_add.add(''.join(created_word))
-                        dict_val['negative'][proc_amount].append(''.join(created_word))
-                    else:
-                        if ''.join(created_word) in char_set['negative'][proc_amount]:
-                            continue
-                        else:
-                            char_set['negative'][proc_amount].append(''.join(created_word))
-                            neg_words_to_add.add(''.join(created_word))
-                            dict_val['negative'][proc_amount].append(''.join(created_word))
-        dict_val = {key: {inner_key: inner_value for inner_key, inner_value in value.items() if inner_value} for
-                    key, value in dict_val.items()}
-
-        return char_set, dict_val
-
-    def get_bp_alphabet(self):
-        print("self actions", self.bp.actions)
-        unique_chars = set()
-        for _, inner_dict in self.bp.actions.items():
-            for char_key in inner_dict.keys():
-                unique_chars.add(char_key)
-
-        unique_chars_list = list(unique_chars)
-        return unique_chars_list
-
-
-def running(bp_1: Bp.BP_class, number):
-    print(f"\nNew Scenario {number} :")
-    bp1 = BP_run(bp_1)
-    _, _, solution = bp1.run()
-    return solution
-
-
-def running_plus_words(bp_1: Bp.BP_class, number, words_to_add, are_words_given):
-    print(f"\nNew Scenario {number} :")
-    bp1 = BP_run(bp_1)
-    _, _, solution = bp1.run_subsume_cs(words_to_add, are_words_given)
-    return solution
-
-
-def running_to_a_limit(bp_1: Bp.BP_class, number, cutoff_limit, sample_limit):
-    print(f"\nNew Scenario {number} :")
-    bp1 = BP_run(bp_1)
-    min_actions, min_clean_rec, actions, clean_rec, solution = bp1.run_cs_to_a_limit(cutoff_limit, sample_limit)
-    return solution
-
-
-def running_no_cs_pos_percentage(bp_1: Bp.BP_class, number, words_to_add, pos_perc, length_limit, procs_limit):
-    print(f"\nNew Scenario {number} :")
-    bp1 = BP_run(bp_1)
-    bp_actions, clean_rec, sol, _ = bp1.run_no_cs_pos_perc(words_to_add, pos_perc, length_limit, procs_limit)
-    return bp_actions, clean_rec, sol
-
-
-def running_no_cs(bp_1: Bp.BP_class, number, words_to_add, are_words_given):
-    print(f"\nNew Scenario {number} :")
-    bp1 = BP_run(bp_1)
-    min_actions, clean_rec, non_min_actions, clean_rec_non_minimal, sol, words_added = bp1.run_no_cs(words_to_add,
-                                                                                                     are_words_given)
-    return min_actions, clean_rec, non_min_actions, clean_rec_non_minimal, sol, words_added
-
-
-def is_right(cher_set, the_bp: Bp.BP_class):
-    """
-    is the given bp can read all those words
-    """
-    print("the bp ", the_bp)
-    for p_c in cher_set['positive']:
-        for p_word in cher_set['positive'][p_c]:
-            char_list = []
-            for char in p_word:
-                char_list.append(char)
-            if not the_bp.is_feasible(p_c, char_list):
-                return False
-    for n_c in cher_set['negative']:
-        for n_word in cher_set['negative'][n_c]:
-            char_list = []
-            for char in n_word:
-                char_list.append(char)
-            if the_bp.is_feasible(n_c, char_list):
-                return False
-    return True
-
-
-def failed_in_min_debug():
-    global df
-    folder_path1 = './no_cs pos_perc/1'
-    folder_path2 = './no_cs pos_perc/2'
-    folder_path3 = './no_cs pos_perc/3'
-    folder_path5 = './no_cs pos_perc/5'
-    folder_path4 = './no_cs pos_perc'
-    folder_path8 = './no_cs pos_perc/8'
-    folder_path10 = './no_cs pos_perc/10'
-    folder_path25 = './no_cs pos_perc/25'
-    folder_path32 = './no_cs pos_perc/32'
-    folder_path39 = './no_cs pos_perc/39'
-    folder_path45 = './no_cs pos_perc/45'
-    folder_path48 = './no_cs pos_perc/48'
-    folder_path52 = './no_cs pos_perc/52'
-    folder_path_new = './no_cs pos_perc/after25-1'
-    folder_path = './no_cs with minimal'
-    # Initialize an empty DataFrame to store the selected rows
-    selected_data = pd.DataFrame()
-    # Iterate over each file in the folder
-    for fp in [folder_path, folder_path1, folder_path2, folder_path3, folder_path4, folder_path5, folder_path8,
-               folder_path10, folder_path25, folder_path32, folder_path39,
-               folder_path45, folder_path48, folder_path52,
-               folder_path_new]:
-        for filename in os.listdir(fp):
-            if filename.endswith('.csv'):
-                # Read the CSV file into a DataFrame
-                file_path = os.path.join(fp, filename)
-                df = pd.read_csv(file_path)
-                df_1 = df[df['right_output'] == True]
-                df_1 = df_1[df_1['minimal_right_output'] == False]
-                df_1 = df_1[df_1['CS_positive_size'] > 0]
-                # df_1 = df_1[df_1['CS_positive_size'] < 35]
-                df_1 = df_1[df_1['solve_SMT_time'] <= 3600]
-                selected_data = pd.concat([selected_data, df_1])
-    print("maxx:", max(selected_data['amount_of_states_in_minimal_output'].tolist()))
-    selected_data = selected_data.drop_duplicates()
-    print(f"in min version there are : {len(selected_data['solve_SMT_time'])}")
-    selected_data = selected_data.drop_duplicates()
-    selected_data.to_csv('failed in min.csv', index=False)
-
-
 if __name__ == '__main__':
 
-    df = pd.DataFrame(
-        columns=['failed_converged', 'timeout', 'amount_of_states_in_origin',
-                 'amount_of_states_in_output',
-                 'origin_BP', 'output_BP', 'cutoff',
-                 'CS_development_time',
-                 'CS_positive_size', 'CS_negative_size', 'words_added',
-                 'longest_word_in_CS', 'solve_SMT_time', 'amount_of_states_in_minimal_output',
-                 'minimal_output_BP', 'minimal_solve_SMT_time', 'right_output',
-                 'minimal_right_output'])  # 'right_output'
+    df = pd.DataFrame(columns=min_column)
 
-    # bp1_1 = BP_class(8, {0: {'d': 4}, 1: {'c': 7}, 2: {'b': 0}, 3: {'e': 0}, 4: {'f': 4, 'h': 6}, 5: {'g': 7},
-    #                      6: {'a': 3}, 7: {'i': 0}}, 0,
-    #                  {0: {'a': 3, 'b': 3, 'c': 1, 'd': 3, 'e': 7, 'f': 1, 'g': 2, 'h': 0, 'i': 0},
-    #                   1: {'a': 2, 'b': 6, 'c': 7, 'd': 5, 'e': 0, 'f': 5, 'g': 6, 'h': 1, 'i': 1},
-    #                   2: {'a': 7, 'b': 5, 'c': 7, 'd': 3, 'e': 4, 'f': 4, 'g': 0, 'h': 4, 'i': 2},
-    #                   3: {'a': 2, 'b': 6, 'c': 3, 'd': 3, 'e': 1, 'f': 3, 'g': 5, 'h': 1, 'i': 3},
-    #                   4: {'a': 4, 'b': 1, 'c': 3, 'd': 6, 'e': 3, 'f': 1, 'g': 4, 'h': 1, 'i': 4},
-    #                   5: {'a': 3, 'b': 7, 'c': 2, 'd': 1, 'e': 1, 'f': 3, 'g': 3, 'h': 4, 'i': 5},
-    #                   6: {'a': 4, 'b': 3, 'c': 6, 'd': 2, 'e': 2, 'f': 1, 'g': 0, 'h': 6, 'i': 6},
-    #                   7: {'a': 7, 'b': 1, 'c': 5, 'd': 1, 'e': 0, 'f': 5, 'g': 6, 'h': 5, 'i': 7}})
-    bp1_1 = BP_class(7, {0: {'f': 4}, 1: {'d': 4}, 2: {'h': 3}, 3: {'i': 5}, 4: {'c': 4, 'g': 2},
-                         5: {'a': 6, 'b': 4, 'e': 6}, 6: {'j': 1}}, 0,
-                     {0: {'a': 4, 'b': 2, 'c': 0, 'd': 2, 'e': 2, 'f': 6, 'g': 5, 'h': 0, 'i': 0, 'j': 0},
-                      1: {'a': 5, 'b': 1, 'c': 2, 'd': 4, 'e': 2, 'f': 4, 'g': 1, 'h': 1, 'i': 1, 'j': 1},
-                      2: {'a': 3, 'b': 0, 'c': 0, 'd': 2, 'e': 5, 'f': 4, 'g': 1, 'h': 2, 'i': 2, 'j': 2},
-                      3: {'a': 3, 'b': 6, 'c': 3, 'd': 4, 'e': 5, 'f': 3, 'g': 3, 'h': 3, 'i': 3, 'j': 3},
-                      4: {'a': 1, 'b': 2, 'c': 0, 'd': 1, 'e': 4, 'f': 5, 'g': 1, 'h': 4, 'i': 4, 'j': 4},
-                      5: {'a': 2, 'b': 5, 'c': 1, 'd': 2, 'e': 4, 'f': 5, 'g': 4, 'h': 5, 'i': 5, 'j': 5},
-                      6: {'a': 0, 'b': 0, 'c': 5, 'd': 5, 'e': 4, 'f': 0, 'g': 2, 'h': 6, 'i': 6, 'j': 6}})
-
-    bp1_1 = BP_class(13, {0: {'d': 3, 'k': 8}, 1: {'n': 11}, 2: {'o': 6},
-                          3: {'b': 1}, 4: {'p': 0}, 5: {'a': 4, 'j': 11}, 6: {'c': 6, 'i': 6}, 7: {'l': 8},
-                          8: {'e': 10}, 9: {'q': 6},
-                          10: {'f': 5, 'm': 11}, 11: {'r': 10}, 12: {'g': 6, 'h': 0}}, 0,
-                     {0: {'a': 5, 'b': 6, 'c': 5, 'd': 1, 'e': 12, 'f': 0, 'g': 7, 'h': 8, 'i': 1, 'j': 4,
-                          'k': 5, 'l': 5, 'm': 6, 'n': 0, 'o': 0, 'p': 0, 'q': 0, 'r': 0},
-                      1: {'a': 1, 'b': 5, 'c': 6, 'd': 2, 'e': 1, 'f': 8, 'g': 8, 'h': 9,
-                          'i': 12, 'j': 0, 'k': 5, 'l': 10, 'm': 4, 'n': 1, 'o': 1, 'p': 1, 'q': 1, 'r': 1},
-                      2: {'a': 1, 'b': 7, 'c': 1, 'd': 0, 'e': 0, 'f': 3, 'g': 8, 'h': 9, 'i': 7,
-                          'j': 8, 'k': 3, 'l': 2, 'm': 7, 'n': 2, 'o': 2, 'p': 2, 'q': 2, 'r': 2},
-                      3: {'a': 7, 'b': 12, 'c': 4, 'd': 4, 'e': 2, 'f': 0, 'g': 3, 'h': 12, 'i': 8,
-                          'j': 10, 'k': 4, 'l': 5, 'm': 4, 'n': 3, 'o': 3, 'p': 3, 'q': 3, 'r': 3},
-                      4: {'a': 3, 'b': 4, 'c': 0, 'd': 10, 'e': 10, 'f': 2, 'g': 4, 'h': 4, 'i': 12,
-                          'j': 0, 'k': 6, 'l': 3, 'm': 11, 'n': 4, 'o': 4, 'p': 4, 'q': 4, 'r': 4},
-                      5: {'a': 0, 'b': 1, 'c': 4, 'd': 12, 'e': 5, 'f': 2, 'g': 10, 'h': 1, 'i': 0, 'j': 11, 'k': 5,
-                          'l': 4, 'm': 7, 'n': 5, 'o': 5, 'p': 5, 'q': 5, 'r': 5},
-                      6: {'a': 0, 'b': 3, 'c': 4, 'd': 11, 'e': 8, 'f': 8, 'g': 0, 'h': 2, 'i': 3, 'j': 12, 'k': 2,
-                          'l': 4, 'm': 1, 'n': 6, 'o': 6, 'p': 6, 'q': 6, 'r': 6},
-                      7: {'a': 4, 'b': 5, 'c': 7, 'd': 1, 'e': 1, 'f': 5, 'g': 2, 'h': 9, 'i': 1, 'j': 10,
-                          'k': 8, 'l': 12, 'm': 9, 'n': 7, 'o': 7, 'p': 7, 'q': 7, 'r': 7},
-                      8: {'a': 8, 'b': 12, 'c': 2, 'd': 12, 'e': 9, 'f': 6, 'g': 10, 'h': 12, 'i': 4, 'j': 2, 'k': 12,
-                          'l': 1, 'm': 3, 'n': 8, 'o': 8, 'p': 8, 'q': 8, 'r': 8},
-                      9: {'a': 9, 'b': 5, 'c': 7, 'd': 12, 'e': 8, 'f': 12, 'g': 10, 'h': 11, 'i': 7, 'j': 10, 'k': 12,
-                          'l': 4, 'm': 10, 'n': 9, 'o': 9, 'p': 9, 'q': 9, 'r': 9},
-                      10: {'a': 0, 'b': 12, 'c': 1, 'd': 12, 'e': 11, 'f': 12, 'g': 8, 'h': 8, 'i': 1, 'j': 11, 'k': 5,
-                           'l': 9, 'm': 3, 'n': 10, 'o': 10, 'p': 10, 'q': 10, 'r': 10},
-                      11: {'a': 4, 'b': 1, 'c': 9, 'd': 4, 'e': 8, 'f': 10, 'g': 12, 'h': 11, 'i': 2, 'j': 11, 'k': 0,
-                           'l': 9, 'm': 2, 'n': 11, 'o': 11, 'p': 11, 'q': 11, 'r': 11},
-                      12: {'a': 1, 'b': 9, 'c': 12, 'd': 9, 'e': 11, 'f': 0, 'g': 8, 'h': 10, 'i': 4, 'j': 3, 'k': 9,
-                           'l': 2, 'm': 1, 'n': 12, 'o': 12, 'p': 12, 'q': 12, 'r': 12}})
-
-    bp1_1 = BP_class(14, {0: {'e': 5, 'k': 6}, 1: {'o': 2}, 2: {'p': 2}, 3: {'b': 9, 'd': 13, 'h': 7}, 4: {'n': 0},
-                          5: {'a': 7, 'c': 13, 'i': 6}, 6: {'q': 13}, 7: {'r': 4}, 8: {'f': 12, 'j': 6}, 9: {'s': 7},
-                          10: {'t': 3}, 11: {'g': 3, 'l': 6, 'm': 3}, 12: {'u': 4}, 13: {'v': 3}}, 0,
-                     {0: {'a': 11, 'b': 4, 'c': 12, 'd': 11, 'e': 6, 'f': 5, 'g': 7, 'h': 13, 'i': 6, 'j': 1, 'k': 3,
-                          'l': 2, 'm': 2, 'n': 4, 'o': 0, 'p': 0, 'q': 0, 'r': 0, 's': 0, 't': 0, 'u': 0, 'v': 0},
-                      1: {'a': 6, 'b': 5, 'c': 1, 'd': 11, 'e': 5, 'f': 10, 'g': 1, 'h': 13, 'i': 4, 'j': 6, 'k': 0,
-                          'l': 8, 'm': 1, 'n': 0, 'o': 1, 'p': 1, 'q': 1, 'r': 1, 's': 1, 't': 1, 'u': 1, 'v': 1},
-                      2: {'a': 3, 'b': 1, 'c': 8, 'd': 10, 'e': 3, 'f': 1, 'g': 7, 'h': 11, 'i': 8, 'j': 8, 'k': 3,
-                          'l': 10, 'm': 5, 'n': 5, 'o': 2, 'p': 2, 'q': 2, 'r': 2, 's': 2, 't': 2, 'u': 2, 'v': 2},
-                      3: {'a': 0, 'b': 8, 'c': 7, 'd': 1, 'e': 6, 'f': 1, 'g': 4, 'h': 7, 'i': 2, 'j': 3, 'k': 1,
-                          'l': 13, 'm': 1, 'n': 6, 'o': 3, 'p': 3, 'q': 3, 'r': 3, 's': 3, 't': 3, 'u': 3, 'v': 3},
-                      4: {'a': 0, 'b': 4, 'c': 10, 'd': 7, 'e': 13, 'f': 3, 'g': 7, 'h': 9, 'i': 9, 'j': 4, 'k': 0,
-                          'l': 12, 'm': 1, 'n': 8, 'o': 4, 'p': 4, 'q': 4, 'r': 4, 's': 4, 't': 4, 'u': 4, 'v': 4},
-                      5: {'a': 5, 'b': 13, 'c': 4, 'd': 4, 'e': 8, 'f': 2, 'g': 6, 'h': 2, 'i': 10, 'j': 1, 'k': 2,
-                          'l': 5, 'm': 9, 'n': 10, 'o': 5, 'p': 5, 'q': 5, 'r': 5, 's': 5, 't': 5, 'u': 5, 'v': 5},
-                      6: {'a': 2, 'b': 4, 'c': 2, 'd': 12, 'e': 9, 'f': 11, 'g': 5, 'h': 8, 'i': 2, 'j': 5, 'k': 4,
-                          'l': 2, 'm': 13, 'n': 4, 'o': 6, 'p': 6, 'q': 6, 'r': 6, 's': 6, 't': 6, 'u': 6, 'v': 6},
-                      7: {'a': 12, 'b': 6, 'c': 13, 'd': 2, 'e': 10, 'f': 10, 'g': 7, 'h': 9, 'i': 0, 'j': 4, 'k': 13,
-                          'l': 0, 'm': 1, 'n': 2, 'o': 7, 'p': 7, 'q': 7, 'r': 7, 's': 7, 't': 7, 'u': 7, 'v': 7},
-                      8: {'a': 6, 'b': 10, 'c': 4, 'd': 7, 'e': 3, 'f': 8, 'g': 2, 'h': 6, 'i': 6, 'j': 4, 'k': 10,
-                          'l': 10, 'm': 11, 'n': 9, 'o': 8, 'p': 8, 'q': 8, 'r': 8, 's': 8, 't': 8, 'u': 8, 'v': 8},
-                      9: {'a': 11, 'b': 6, 'c': 12, 'd': 9, 'e': 4, 'f': 5, 'g': 5, 'h': 2, 'i': 1, 'j': 1, 'k': 8,
-                          'l': 0, 'm': 0, 'n': 9, 'o': 9, 'p': 9, 'q': 9, 'r': 9, 's': 9, 't': 9, 'u': 9, 'v': 9},
-                      10: {'a': 6, 'b': 2, 'c': 4, 'd': 0, 'e': 1, 'f': 4, 'g': 3, 'h': 7, 'i': 3, 'j': 1, 'k': 5,
-                           'l': 10, 'm': 12, 'n': 5, 'o': 10, 'p': 10, 'q': 10, 'r': 10, 's': 10, 't': 10, 'u': 10,
-                           'v': 10},
-                      11: {'a': 6, 'b': 8, 'c': 10, 'd': 5, 'e': 13, 'f': 9, 'g': 1, 'h': 5, 'i': 3, 'j': 11, 'k': 0,
-                           'l': 5, 'm': 6, 'n': 8, 'o': 11, 'p': 11, 'q': 11, 'r': 11, 's': 11, 't': 11, 'u': 11,
-                           'v': 11},
-                      12: {'a': 10, 'b': 12, 'c': 12, 'd': 11, 'e': 12, 'f': 11, 'g': 5, 'h': 1, 'i': 6, 'j': 13,
-                           'k': 6, 'l': 1, 'm': 12, 'n': 11, 'o': 12, 'p': 12, 'q': 12, 'r': 12, 's': 12, 't': 12,
-                           'u': 12, 'v': 12},
-                      13: {'a': 13, 'b': 3, 'c': 13, 'd': 2, 'e': 2, 'f': 11, 'g': 5, 'h': 13, 'i': 9, 'j': 3,
-                           'k': 12, 'l': 8, 'm': 8, 'n': 13, 'o': 13, 'p': 13, 'q': 13, 'r': 13, 's': 13, 't': 13,
-                           'u': 13, 'v': 13}})
-    # set_of_words_1_1 = {'positive': {1: ['dhaedfffhaedhaed'], 4: ['dhcaedhc', 'deccgebeccgie'],
-    #                                  9: ['dha'], 12: ['de'], 15: ['dffhaehca'], 17: ['dhcaed'],
-    #                                  19: ['dhaehdbiidgifeeiiide']},
-    #                     'negative': {1: ['fegdedd'], 3: ['hgbieafdghafbafh', 'iff'],
-    #                                  4: ['beiegadebieeihhcci', 'iah', 'hfadggegidcgfdhhad', 'cdgadfhhfeb',
-    #                                      'cbihfgbbdidgg'], 5: ['hfcabdbcdiccg'],
-    #                                  6: ['cffaaigaddfig', 'afegichddf', 'checbgdhca', 'ggbdcb'],
-    #                                  7: ['agaibahh', 'cddcbbcbfachhc', 'gi', 'cfhdhcdb', 'ddeaebi'],
-    #                                  8: ['abdgefeeddhgdagddaa', 'hehfdbhhhhgecfhd', 'diic', 'eadiadabedgghdgh',
-    #                                      'cbaabfbida', 'bbbhffdhaddh'],
-    #                                  9: ['aefbbdhcahceg', 'gcifbiahbidaecga', 'hbaabhih'],
-    #                                  10: ['ecgfah', 'hiibcfa', 'bc'],
-    #                                  11: ['idiceaabbab', 'bbehcficbfhgifbgea', 'hegbegbgaiidcdbihdch'],
-    #                                  12: ['iehbbfih', 'dbdeegdibi'],
-    #                                  13: ['abgad', 'ghdhgigbhcfb', 'fbfaaihaggfehi', 'cfbghiedbiaehe'],
-    #                                  14: ['idififeefahggfac', 'egbhcfedgiffiidahdai', 'ifcbhahhefeagaia', 'fibcgd',
-    #                                       'a'], 15: ['heb', 'ceaedcabhgffhiddach', 'chieeecbfaebdb'],
-    #                                  16: ['hdgbggfgd', 'hcdfiggbefghbcc', 'di'],
-    #                                  17: ['fafhcihg', 'eeciiac', 'bifb', 'bieefbhdgcbeghidbfih'],
-    #                                  18: ['cc', 'ehibafiffe', 'gcg', 'hcbeecggffibbc', 'chagbc', 'bbe',
-    #                                       'ibdeffbcgcah'], 19: ['edgifahheegaa', 'ceghiaa', 'hfeaefb', 'ihhiahdiihb'],
-    #                                  20: ['iabbahfeffffhgdfdi', 'igffaecgihceh', 'egfagfbbdhaeeicgb']}}
-
-    set_of_words_1_1 = {'positive': {1: ['fcghibcghiejdghib', 'fghiejdghibcccccgh'],
-                                     2: ['fghhiai', 'fjgdghdcgaieghih'],
-                                     3: ['fcegdhhiiah'], 4: ['fjjgdhhcgiibgai'],
-                                     6: ['fjj', 'fghhhhihaiecbdghd'], 8: ['fjdcccgeghcfej'],
-                                     9: ['fcadg'], 10: ['fcegdhihgdghdgh'],
-                                     12: ['fjdecajccg'], 17: ['fcbbbgbgbfe', 'fjjdddcc'],
-                                     18: ['fghieecfjecccgajh', 'fcecehighdgh']},
-                        'negative': {2: ['gjbjbhfhcfghibedejc'], 5: ['ag', 'gehcfdchafe'],
-                                     7: ['cciicibccgiggfde'],
-                                     8: ['hg', 'gbgdhgcdhabaeffceigf'],
-                                     9: ['fhjbbcicggbcfdbea', 'ichbfa'],
-                                     10: ['be'], 11: ['heebeae', 'eej'],
-                                     12: ['efbeiaebccgidcchhe'],
-                                     14: ['acggdbbebde', 'aefgajjadebidgbcj', 'fgbgabfbb', 'hgaiddj',
-                                          'dffahaabajaggjahcc'], 16: ['gij'],
-                                     17: ['ebebeeafahb', 'fifaidbdafjhbjcbchah', 'bfadhhccaicigad', 'beg'],
-                                     19: ['biceegigfbejahaffff', 'e'], 20: ['fdcj']}}
-
-    set_of_words_1_1 = {'positive': {1: ['kefjrfa'], 2: ['kemleficjhdbpkae'], 4: ['db', 'k'], 5: ['keml'],
-                                     6: ['dnbnjkkhkefjr'], 7: ['dbanpdnrfeqcc', 'dnbnjd'], 10: ['kejrmooiic'],
-                                     12: ['kjoiilpglpqdh', 'kefoci', 'dnrfdgiccjdqbbabhdf'],
-                                     14: ['dbnjrrrfgiihdh'], 15: ['kem', 'kapkaeg'], 19: ['dbnapp'],
-                                     20: ['dnnnrmpkbchdg']},
-                        'negative': {4: ['jrjkpgghk', 'lgholhkdejldch', 'okbfplkkg'],
-                                     5: ['iieeiocn', 'rdeeqirgagbgpcido', 'fcare'],
-                                     7: ['gafbiqmgfghq'], 8: ['jlhcdaqfir'],
-                                     13: ['dbiafhhmjreqaopen', 'fijddpeqbairdcmgbkhk', 'heodgmggffambaf',
-                                          'aiparqd', 'rhfchafli'], 14: ['n'], 15: ['bpddbloqqn', 'oci', 'ooflpd'],
-                                     16: ['egohmjkdih', 'ogcchh', 'iff'],
-                                     19: ['aclipmnrmfnl', 'hjj', 'kkhpohldodkdllrc'],
-                                     20: ['cncgqej', 'naicchdpeegrqecm', 'hjpram', 'e']}}
-
-    set_of_words_1_1 = {'positive': {1: ['ecvbsrneiqvhrnecvhr'], 2: ['kqhrnecjbsrnfiqvb'],
-                                     3: ['kdvhovpbqvh'], 4: ['kbffmaqv', 'e'], 5: ['kdu'],
-                                     6: ['eaprnal', 'kdvbcnghma'], 7: ['ea'], 8: ['ecpp', 'eaprppppnecvnj'],
-                                     9: ['kbjqvneds'], 12: ['ecvhrgdlqaq', 'eipqvhlearneiss'],
-                                     14: ['kbnkqvf'], 17: ['earnkqvpboo', 'khrneips'],
-                                     18: ['eapprnithrjn', 'eipqvphliq'], 19: ['khjqvnjarkesrvbv']},
-                        'negative': {1: ['rmbnoicamfkmo', 'ljt'],
-                                     2: ['argghboaunagsf', 'cbplbvtg', 'dajnirmolhipkaarurno'],
-                                     3: ['ilb', 'dpdjlmtsmebcpklro'], 4: ['nomsaulvtauokrhtr', 'cdcqt'],
-                                     5: ['bbtk', 'vg'], 6: ['fvpfreahla', 'r'],
-                                     7: ['uh', 'fsnuqubvidlg', 'tbesgqiddqne'],
-                                     8: ['jjetrnudmm', 'plqlvhgmnmrd'], 9: ['lkcvcfn', 'isnme'],
-                                     10: ['iionhuhjue'],
-                                     12: ['jcvsarllmatngilthrmr', 'nqivitiqaourvfscdvdj', 'drgimop'],
-                                     13: ['fmqnphcmtpqkk', 'nsgagvhahbaqghldb', 'coljju', 'quftencgddn'],
-                                     14: ['bkmcoqpjgeihprcnqkiu', 'cbjmhslf', 'vtdsdmgubtotcjo',
-                                          'bbtvkquiotrblnomjvcf'],
-                                     15: ['maqgbarojqoelndb', 'cienlkaflde'], 16: ['ugm'],
-                                     17: ['jslfr', 'bqlon', 'enbhbgor'], 18: ['fjmbpkduakjosmf'],
-                                     19: ['caesenlqfo', 'glb', 'tauliojpmbil']}}
+    bp1_1 = BP_class(2, {0: {'a': 1}, 1: {'b': 0}}, 0, {0: {'a': 1, 'b': 0}, 1: {'a': 1, 'b': 0}})
+    set_of_words_1_1 = {'positive': {1: ['ab'], 2: ['aba']},
+                        'negative': {1: ['b', 'bb'],
+                                     2: ['bab', 'b', 'baa']}}
     min_actions, clean_rec, non_min_actions, clean_rec_non_minimal, solution, words_added = running_no_cs(bp1_1, 0,
                                                                                                           set_of_words_1_1,
                                                                                                           True)
@@ -1697,15 +953,8 @@ if __name__ == '__main__':
     print(f"scenario {scenario_number - 1}: the two BP's are equivalent?: minimal:",
           right_output)
     new_row = pd.DataFrame([solution],
-                           columns=['failed_converged', 'timeout', 'amount_of_states_in_origin',
-                                    'amount_of_states_in_output',
-                                    'origin_BP', 'output_BP', 'cutoff',
-                                    'CS_development_time',
-                                    'CS_positive_size', 'CS_negative_size', 'words_added',
-                                    'longest_word_in_CS', 'solve_SMT_time', 'amount_of_state/s_in_minimal_output',
-                                    'minimal_output_BP', 'minimal_solve_SMT_time', 'right_output',
-                                    'minimal_right_output'])  # 'right_output'
+                           columns=min_column)  # 'right_output'
 
     print("new_row:", new_row)
     df = pd.concat([df, new_row], ignore_index=True)
-    df.to_csv('curr128_1_output_1_after_fix_3.csv', index=False)
+    df.to_csv('non_Cs_example.csv', index=False)
