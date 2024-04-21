@@ -165,83 +165,89 @@ For bith of them we run the function ``learn`` taht is under ``BP_Learn.py``. Th
 
 ## Example 1:
 The results will be saved in teh csv file : BP_results_cs_subsumed
-Note, scince this is random generation procedure, we cannot geratnee termination, therfore, running this procedure may result in "print(f"The random generated BP has either no cutoff or it is greater then {cutoff}")". Id it do converage then the procedure will return an appropriate random generated BP and an Infered BP from teh sample
+Note, scince this is random generation procedure, we cannot geratnee termination, therfore, running this procedure may result in "print(f"The random generated BP has either no cutoff or it is greater then {cutoff}")". Id it do converage then the procedure will return an appropriate random generated BP and an Infered BP from the sample
 ```python
-  ...
-  df = pd.DataFrame(columns=min_column)
-  cutoff = 15
-  timer_c = 900  # 15 min in seconds
-  bp = BP_generator(3, 1, max_number_of_act=2)
-  learner = BP_run(bp.bp)
-  bp_min_acts, bp_min_rec, bp_acts, bp_rec, solution = learner.run_subsume_cs(0, False, cutoff, timer_c)
-  
-  if solution['failed_converged']:
-      new_row = pd.DataFrame([solution],
-                             columns=min_column)  # 'right_output'
-      df = pd.concat([df if not df.empty else None, new_row], ignore_index=True)
-      df.to_csv(f'BP_results_cs_subsumed.csv', index=False)
-      print(f"The random generated BP has either no cutoff or it is greater then {cutoff}")
-  else:
-      bp_learned = BP_class(len(bp_acts), bp_acts, 0, bp_rec)
-      solution['right_output'] = equivalent_bp(bp.bp, bp_learned, solution['cutoff'])
-      print(f"Are the two BP's are equivalent?:",
-            solution['right_output'])
-  
-      bp_learned = BP_class(len(bp_min_acts), bp_min_acts, 0, bp_min_rec)
-      solution['minimal_right_output'] = equivalent_bp(bp.bp, bp_learned, solution['cutoff'])
-      print(f"Are the two BP's are equivalent?: minimal:",
-            solution['minimal_right_output'])
-      new_row = pd.DataFrame([solution],
-                             columns=min_column)
-      df = pd.concat([df if not df.empty else None, new_row], ignore_index=True)
-      df.to_csv(f'BP_results_cs_subsumed.csv', index=False)
-  ...
+  def run_a_random_bp_example(minimal=False):
+    if minimal:
+        df = pd.DataFrame(columns=min_column)
+    else:
+        df = pd.DataFrame(columns=non_min_column)
+    cutoff = 15
+    timer_c = 900 
+    word_lim = 1500
+    bp = BP_generator(3, 1, max_number_of_act=2)
+    learner = BP_run(bp.bp)
+    bp_min_acts, bp_min_rec, bp_acts, bp_rec, solution = learner.run_subsume_cs(0, False, cutoff, timer_c, word_lim=word_lim, minimal=minimal)
+
+    if solution['failed_converged']:
+        new_row = pd.DataFrame([solution], columns=min_column)
+        df = pd.concat([df if not df.empty else None, new_row], ignore_index=True)
+        df.to_csv(f'BP_results_cs_subsumed.csv', index=False)
+        print(f"The random generated BP has either no cutoff or it is greater then {cutoff}")
+    else:
+        bp_learned = BP_class(len(bp_acts), bp_acts, 0, bp_rec)
+        solution['right_output'] = equivalent_bp(bp.bp, bp_learned, solution['cutoff'])
+        print(f"Are the two BP's are equivalent?:", solution['right_output'])
+
+        if minimal:
+            bp_learned = BP_class(len(bp_min_acts), bp_min_acts, 0, bp_min_rec)
+            solution['minimal_right_output'] = equivalent_bp(bp.bp, bp_learned, solution['cutoff'])
+            print(f"Are the two BP's are equivalent?: minimal:", solution['minimal_right_output'])
+        new_row = pd.DataFrame([solution],
+                               columns=min_column)
+        df = pd.concat([df if not df.empty else None, new_row], ignore_index=True)
+        df.to_csv(f'BP_results_cs_subsumed.csv', index=False)
 ```
 Where ```learner.run_subsume_cs(0, False, cutoff, timer_c)```
 which is equivalent to the CS development by the algorithm that was developed for maximal ```cutoff``` and time_bounding of ```timer_c```
+
+A fucntion that do so is ``run_a_random_bp_example()``
 
 A posible output can be:
 ```text
   counter:  1
   counter:  2
   SAT
-  self known actions  ['a', 'c', 'b', 'd']
-  self known states  [0, 1]
-  this is the BP:
-  acts:{0: {'a': 0}, 1: {'c': 0, 'b': 0, 'd': 0}}
-  rec:{0: {'a': (0, True), 'c': (1, True), 'b': (0, True), 'd': (0, True)}, 1: {'a': (1, True), 'c': (1, True), 'b': (0, True), 'd': (0, True)}}
-  SMT values constrains
-  Are the two BP's are equivalent?: (None, None, True)
-  Are the two BP's are equivalent?: minimal: (None, None, True)
-  counter:  1
-  counter:  2
-  SAT
-  self known actions  ['a', 'c', 'b', 'e', 'd']
+  self known actions  ['d', 'a', 'b', 'c']
   self known states  [0, 1, 2]
+  minimal False
   this is the BP:
-  acts:{0: {'a': 1}, 1: {'c': 1}, 2: {'b': 1, 'e': 1, 'd': 0}}
-  rec:{0: {'a': (1, True), 'c': (0, True), 'b': (1, True), 'e': (1, True), 'd': (1, True)}, 1: {'a': (1, True), 'c': (1, True), 'b': (1, True), 'e': (0, True), 'd': (0, True)}, 2: {'a': (2, True), 'c': (2, True), 'b': (1, True), 'e': (0, True), 'd': (0, True)}}
+  acts:{0: {'d': 1, 'a': 1}, 1: {'b': 0}, 2: {'c': 0}}
+  rec:{0: {'d': (1, True), 'a': (1, True), 'b': (1, True), 'c': (1, True)}, 1: {'d': (0, True), 'a': (1, True), 'b': (0, True), 'c': (0, True)}, 2: {'d': (0, True), 'a': (0, True), 'b': (1, True), 'c': (0, True)}}
   SMT values constrains
   Are the two BP's are equivalent?: (None, None, True)
-  Are the two BP's are equivalent?: minimal: (None, None, True)
 ```
-As we expected, the minimal and the `defaultive returned` BPs are the same, since for CS the algorithm guarantees it.
+As we expected, the minimal and the `defaultive returned` BPs are of teh same size (3), because for CS the algorithm guarantees it.
 
 The csv file will look as follows:
-|failed_converged |	timeout	| amount_of_states_in_origin	| amount_of_states_in_output |	origin_BP |	output_BP |	cutoff |	CS_development_time |	CS_positive_size |	CS_negative_size |	words_added |	longest_word_in_CS |	solve_SMT_time |	right_output |	amount_of_states_in_minimal_output |	minimal_output_BP	| minimal_solve_SMT_time |	minimal_right_output|
-|--------- |------|----------|-------|-------|--------------|--------------|-------|--------|-------|-------|-------|------|------|-------|------|------|------|
-|FALSE|FALSE|3|3|states: 3, actions: {0: {'a': 2}, 1: {'b': 2, 'd': 2, 'e': 2}, 2: {'c': 2}}, initial: 0, receivers: {0: {'a': 2, 'b': 1, 'c': 2, 'd': 2, 'e': 1}, 1: {'a': 0, 'b': 2, 'c': 1, 'd': 0, 'e': 2}, 2: {'a': 2, 'b': 2, 'c': 2, 'd': 0, 'e': 0}}|states: 3, actions: {0: {'a': 1}, 1: {'c': 1}, 2: {'b': 1, 'e': 1, 'd': 0}},initial: 0, receivers: {0: {'a': 1, 'c': 0, 'b': 1, 'e': 1, 'd': 1}, 1: {'a': 1, 'c': 1, 'b': 1, 'e': 0, 'd': 0}, 2: {'a': 2, 'c': 2, 'b': 1, 'e': 0, 'd': 0}}|2|0.000111300000000036|4|16|{'positive': {}, 'negative': {}}|4|0.0145607999999999|(None, None, True)|0|0|0|(None, None, True)|
+|failed_converged |	timeout	| amount_of_states_in_origin	| amount_of_states_in_output |	origin_BP |	output_BP |	cutoff |	CS_development_time |	CS_positive_size |	CS_negative_size |	words_added |	longest_word_in_CS |	solve_SMT_time |	right_output |
+|--------- |------|----------|-------|-------|--------------|--------------|-------|--------|-------|-------|-------|------|------|
+|FALSE|FALSE|3|3|"states: 3,actions: {0: {'a': 1, 'd': 1}, 1: {'b': 0}, 2: {'c': 0}},initial: 0,receivers: {0: {'a': 1, 'b': 2, 'c': 1, 'd': 1}, 1: {'a': 0, 'b': 0, 'c': 1, 'd': 0}, 2: {'a': 2, 'b': 2, 'c': 2, 'd': 0}}"|"states: 3, actions: {0: {'d': 1, 'a': 1}, 1: {'b': 0}, 2: {'c': 0}},initial: 0,receivers: {0: {'d': 1, 'a': 1, 'b': 1, 'c': 1}, 1: {'d': 0, 'a': 1, 'b': 0, 'c': 0}, 2: {'d': 0, 'a': 0, 'b': 1, 'c': 0}}"|2|0.000421|16|28|{'positive': {}, 'negative': {}}|5|0.0233275|(None, None, True)|
 
 ## Example 2:
 We can also do so for a given BP, written according to our structure
-The foolowing BP $B_1$ is written as follows:
+The following BP $B_1$ is written as follows:
+
+``bp1 = BP_class(2, {0: {'a': 1}, 1: {'b': 0}}, 0, {0: {'a': 1, 'b': 0}, 1: {'a': 1, 'b': 0}})``
+
+A fucntion that do so is ``run_a_given_bp_example(bp1)`` for a given bp
 
 And creating a CS and inferring for it will be:
 ```python
-
+counter:  1
+counter:  2
+SAT
+self known actions  ['a', 'b']
+self known states  [0, 1]
+minimal False
+this is the BP:
+acts:{0: {'a': 1}, 1: {'b': 0}}
+rec:{0: {'a': (1, True), 'b': (0, True)}, 1: {'a': (0, True), 'b': (0, True)}}
+SMT values constrains
+Are the two BP's are equivalent?: (None, None, True)
 ```
 
-## About Broadcast Protocols (in short BPs):
+## About Broadcast Protocols:
 
 **Broadcast protocols** (in short BPs) are a powerful concurrent computational model, allowing the synchronous communication of the sender of an action with an arbitrary number of receivers. 
 
