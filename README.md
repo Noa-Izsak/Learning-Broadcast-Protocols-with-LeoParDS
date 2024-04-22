@@ -1,6 +1,10 @@
 # ATVA'24 Artifact: `Learning Broadcast Protocols with LeoParDS`
-**Noa Izsak $^1$ [0009−0004−1333−2490], Dana Fisman $^1$ [0000−0002−6015−4170], and
-Swen Jacobs $^2$ [0000−0002−9051−4050]**
+**Noa Izsak $^1$, Dana Fisman $^1$, and
+Swen Jacobs $^2$**
+
+**izsak@post.bgu.ac.il, 
+    dana@cs.bgu.ac.il, 
+    jacobs@cispa.de**
 
 **1.  Ben Gurion University, Beer-Sheva, Israel**
 
