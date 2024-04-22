@@ -613,7 +613,7 @@ class LearnerBp:
             copied_receivers = copy.deepcopy(self.bp.receivers)
             self.ret_origin_self_bp = Bp.BP_class(len(copied_actions), copied_actions, self.bp.initial_state,
                                                   copied_receivers)
-            print("minimal", minimal)
+            # print("minimal", minimal)
             if minimal:
                 if len(self.bp.actions) == 2:  # already minimal..
                     self.solution[

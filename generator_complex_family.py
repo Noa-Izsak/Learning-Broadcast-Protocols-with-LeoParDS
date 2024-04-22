@@ -1,12 +1,8 @@
-import concurrent.futures
-import random
-
 import pandas as pd
 
 from BP_Class import BP_class
 from BP_Run import *
 from BP_gen import act_names, equivalent_bp
-
 
 one_hour = 3600
 two_hours = 7200
@@ -16,7 +12,7 @@ half_hour = 1800
 
 
 def generator_B_m_n_l(m, n, l, cutoff, timer_c, word_lim):
-    scenario_number = 1
+    scenario_num = 1
     df = pd.DataFrame(
         columns=['failed_converged', 'timeout', 'amount_of_states_in_origin',
                  'amount_of_states_in_output', 'origin_BP', 'output_BP', 'cutoff',
@@ -126,8 +122,8 @@ def generator_B_m_n_l(m, n, l, cutoff, timer_c, word_lim):
 
     bp = BP_class(number_of_states, actions, state_to_num_dict['i1'], responses)
 
-    print(f"scenario #{scenario_number}: {bp}")
-    scenario_number += 1
+    print(f"scenario #{scenario_num}: {bp}")
+    scenario_num += 1
     learner = BP_run(bp)
     bp_acts, bp_rec, origin_actions, rec_non_minimal, solution = learner.run_subsume_cs(0, False, cutoff_lim=cutoff,
                                                                                         time_lim=timer_c,
@@ -148,7 +144,7 @@ def generator_B_m_n_l(m, n, l, cutoff, timer_c, word_lim):
         return
     bp_learned = BP_class(len(bp_acts), bp_acts, 0, bp_rec)
     solution['right_output'] = equivalent_bp(bp, bp_learned, solution['cutoff'])
-    print(f"scenario {scenario_number - 1}: the two BP's are equivalent?:",
+    print(f"scenario {scenario_num - 1}: the two BP's are equivalent?:",
           equivalent_bp(bp, bp_learned, solution['cutoff']))
     new_row = pd.DataFrame([solution],
                            columns=['failed_converged', 'timeout', 'amount_of_states_in_origin',
@@ -172,7 +168,7 @@ def generator_B_m_n_l(m, n, l, cutoff, timer_c, word_lim):
 #         generator_B_m_n_l(m_ind, n_ind, 1)
 
 time_count = 8 * 3600
-generator_B_m_n_l(2, 4, 2, 50, time_count, 500000)
+generator_B_m_n_l(2, 1, 2, 35, time_count, 8500)
 
 # bp = BP_generator(2, 0, 3, 1)
 # print("1:", bp.bp)

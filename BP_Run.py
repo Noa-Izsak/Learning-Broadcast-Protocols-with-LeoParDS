@@ -3,7 +3,7 @@ import concurrent.futures
 import time
 import BP_Class as Bp
 from helpers_functions import *
-from BP_Learn import LearnerBp
+from BP_Learn import *
 
 twenty_min = 1200
 fifteen_min = 900
@@ -59,7 +59,6 @@ class BP_run:
             char_set = words_to_add
             additional_words = words_to_add
         end_time = time.perf_counter()
-        print("words_added:", additional_words)
         learn_bp = LearnerBp(char_set, self.bp, end_time - start_time, additional_words)
         if learn_bp.solution['failed_converged']:
             return None, None, learn_bp.solution, additional_words
@@ -106,7 +105,6 @@ class BP_run:
                 cutoff = None
                 char_set, _ = clean_char_set(char_set)
                 learn_bp = LearnerBp(char_set, self.bp, CS_time, char_set, cutoff)
-                print("learn.bp.sol:", learn_bp.solution)
                 if learn_bp.solution['failed_converged']:
                     return None, None, learn_bp.solution
                 learn_bp.learn(minimal)
