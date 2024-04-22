@@ -1,3 +1,214 @@
+# ATVA'24 Artifact: `Learning Broadcast Protocols with LeoParDS`
+**Noa Izsak $^1$ [0009−0004−1333−2490], Dana Fisman $^1$ [0000−0002−6015−4170], and
+Swen Jacobs $^2$ [0000−0002−9051−4050]**
+
+**1.  Ben Gurion University, Beer-Sheva, Israel**
+
+**2.  CISPA Helmholtz Center for Information Security, Saarbrücken, Germany**
+
+This artifact serves as an example template for artifacts submitted to ATVA'24
+artifact evaluation.
+
+# Quickstart
+
+## Requirements
+
+The following software is required for running this artifact:
+
+- [docker](https://docs.docker.com/get-docker/)
+
+## Setup Steps
+- Install Docker as described at https://docs.docker.com/get-docker/.
+
+- Download the artifact `Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip `
+  from https://zenodo.org/record/`<record>`
+
+- Unzip the artifact:
+
+  **Note:** This will unzip the artifact directory structure and files into the
+  current working directory, including the compressed docker image
+  `image.tar`.
+  ```
+  unzip Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip
+  ```
+
+1. run ```docker stop bpcodecontainer```
+
+2. run ```docker rm bpcodecontainer```
+
+3. run ```docker rmi bpcode:bpcode```
+
+4. run ```docker build -t bpcode:bpcode .``` or import the image file (i.e. ```docker load -i image.tar```)
+
+   This will import the docker image named `<image-name>`. This might take a few minutes.
+
+5. run ```docker run -d -it --name bpcodecontainer -v .:/code bpcode:bpcode```
+
+6. run ```docker exec -it bpcodecontainer /bin/bash```
+
+  **Note** This will spin up a new docker container in which the following
+  steps should be executed.
+
+## Smoke Test Steps   
+
+# -----------TO DO-----------!
+
+**Comment**
+After the initial setup of the artifact you should provide a script that
+reviewers can execute to run some experiments on a **very small subset**
+(ideally within 1-2 minutes).
+Provide the output of your run including the required time.
+This will help the reviewers during the **smoke test phase** to quickly check
+whether the artifact was correctly set up and if it is working as intended.
+
+**Output of Smoke Test Execution**
+<details>
+  <summary>Click to expand</summary>
+
+```
+Output of smoke test execution.
+```
+</details>
+
+---
+
+
+# Available Bagde
+
+The artifact was uploaded to Zenodo and is available at
+https://zenodo.org/record/`<record>` (DOI: `10.5281/zenodo.10968038`).
+
+# Functional Badge
+
+In the paper we run ```generator_and_check_subsume_cs``` for varius inputs and for every one that terminated under our criterion we added to the dataset we exemined.
+Since this is random generation of BPs, one may not generated the same set of BPs by itself but it is alright, science we aim to for other foelds to use this tool for theor pwn fields and find new uses for him.
+
+We include the data generated for the experiments in the ```results.csv```. 
+
+***Note:*** Generating the data took several days of compute time on multiple compute nodes using a cluster. The produced files are very large and checking any set of the files will take significant computing time.
+
+
+## Artifact Directory Structure
+
+**Comment** Example directory structure of the artifact. List all files in the
+artifact and add a description for each one.
+
+  - `Dockerfile`: The docker file to build the artifact image
+  - `commands_to_run.text`: The commands you need to run after unziping the artifact 
+  - `LICENSE`: Artifact license
+  - `Readme.md`: This file
+  - `paper.pdf`: An updated version of the submitted paper
+  - Directory `result`
+    - `result.zip`: Archive containing all input files used for the evaluation
+  - `<image>.tar.gz`: The docker image to replicate the evaluation.
+  - `Test_run.py`: Script to run an evaluation
+  - `random_generator.py` : Script we use to run the evaluation
+  - `BP_Class.py` : Where BP_class is defined, that is the BP object itself
+  - `BP_gen.py` : Where BP_generator class is defined, that allow a user to generate a random BP
+  - `BP_Run.py` : Functions that allow us to infer on BPs for diffrent needs, i.e.:
+    - subsume a CS (```run_subsume_cs```),
+    - without subsuming a CS (```run_no_cs```),
+    - without subsuming a CS and having a given positive precentage in the random generated sample (```run_no_cs_pos_perc```)
+  - `BP_Learn.py` : Where LearnerBp class is defined and use as the object that the inference procedure occurs on
+  - `State_Vector.py` : An helper class
+  - `Trie.py` : An helper class
+
+## Steps to Replicate the Experimental Results
+
+# -----------TO DO-----------!
+**Comment**
+Describe experimental setup including the used resource limits and the used
+hardware.
+If the full set of experiments will not finish within **four hours** of
+runtime, prepare a representative subset that will finish within **two hours**.
+In this case, also **include the instructions for running the full experimental
+evaluation**.
+
+### 1. Start the Docker Container
+
+# -----------TO DO-----------!
+**Note**
+Make sure to follow the setup steps to import the docker image before
+continuing with this step.
+
+```
+docker run -it <image-name>
+```
+
+### 2. Execute Evaluation Runs
+
+# -----------TO DO-----------!
+**Comment** List steps to replicate the evaluation runs in the paper.
+
+
+### 3. Extract Numbers presented in the Paper
+
+# -----------TO DO-----------!
+**Note**
+To copy files from the docker container you can use `docker container cp`
+(https://docs.docker.com/engine/reference/commandline/container_cp/).
+
+#### 3.1 Extract Numbers for Figure 1
+
+# -----------TO DO-----------!
+```
+<command to generate Fig. 1>
+```
+
+# -----------TO DO-----------!
+**Output**
+<details>
+  <summary>Click to expand</summary>
+
+```
+Results for Figure 1.
+```
+</details>
+
+# -----------TO DO-----------!
+#### 3.2 Generate Table 2
+
+```
+# -----------TO DO-----------!
+<command to generate Table 2>
+```
+
+# -----------TO DO-----------!
+**Output**
+<details>
+  <summary>Click to expand</summary>
+
+```
+Table 2.
+```
+# -----------TO DO-----------!
+</details>
+
+# Reusable Badge
+
+In the next sub-sections we discribe in details how one can use the diffrent parts in the code.
+Note that the code is well documented so any helper fucntion that isn't describe here can be understood while looking at the code. But in order to not assume taht one is familier with codeing and python in particuler, we describe here with running examples the main parts as also explained in the paper.
+
+## Building the Docker Image
+
+In order to build the Docker image one need first to:
+-  Install Docker as described at https://docs.docker.com/get-docker/.
+-  The artifact contains all files to build the docker image from scratch as
+  follows. In the base directory of the artifact execute the following command
+  to generate the `image` Docker image.
+  You can also find the file ``commands_to_run.txt`` taht explaines it.
+Do as follows:
+1. run ```docker stop bpcodecontainer```
+2. run ```docker rm bpcodecontainer```
+3. run ```docker rmi bpcode:bpcode```
+4. run ```docker build -t bpcode:bpcode .```
+
+And now you have a Docker image :)
+
+- Use docker image as described in the "Functional Badge" section. (i.e. from 4. ```docker load -i image.tar```)
+
+
+
 # Learning-Broadcast-Protocols-with-LeoParDS
 
 This repository contains the artifacts for the paper ``Learning Broadcast Protocols with LeoParDS''.
