@@ -103,7 +103,7 @@ artifact and add a description for each one.
   - `Readme.md`: This file
   - `paper.pdf`: An updated version of the submitted paper
   - Directory `result`
-    - `result.zip`: Archive containing all input files used for the evaluation
+    - `result.csv`: Archive containing all files used for the evaluation
   - `<image>.tar.gz`: The docker image to replicate the evaluation.
   - `Test_run.py`: Script to run an evaluation
   - `random_generator.py` : Script we use to run the evaluation
@@ -116,6 +116,7 @@ artifact and add a description for each one.
   - `BP_Learn.py` : Where LearnerBp class is defined and use as the object that the inference procedure occurs on
   - `State_Vector.py` : An helper class
   - `Trie.py` : An helper class
+  - 'main.py' : A function where you can plot the evaluated results as we present in the paper
 
 ## Steps to Replicate the Experimental Results
 
