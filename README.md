@@ -116,7 +116,7 @@ artifact and add a description for each one.
   - `BP_Learn.py` : Where LearnerBp class is defined and use as the object that the inference procedure occurs on
   - `State_Vector.py` : An helper class
   - `Trie.py` : An helper class
-  - 'main.py' : A function where you can plot the evaluated results as we present in the paper
+  - `main.py` : A function where you can plot the evaluated results as we present in the paper
 
 ## Steps to Replicate the Experimental Results
 
