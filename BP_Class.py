@@ -1,4 +1,3 @@
-import random
 import time
 
 
@@ -82,7 +81,6 @@ class BP_class:
         :param act: str of current action to perform
         :return: the appropriate state vector after acting the given action
         """
-        procs = number_of_procs_in_vector(state_vector)
         new_state_vector = {x: 0 for x in self.actions}
         index = self.get_state_index_by_action(act)
         for state in state_vector:
@@ -139,7 +137,6 @@ class BP_class:
         if len(current_heads) == 0:
             return dict_ret
         new_current_heads = {}
-        vectors_to_append = []
 
         for state_vector in current_heads:
             s_vec = list(state_vector)
@@ -419,7 +416,6 @@ class BP_class:
         characteristic_sets['positive'] = dict()
         characteristic_sets['negative'] = dict()
 
-        number_of_states = len(self.actions)
         start_time = time.perf_counter()
         curr = self.find_characteristic_set_multi_procs(counter)
         characteristic_sets['positive'][counter] = list(set(curr['positive']))

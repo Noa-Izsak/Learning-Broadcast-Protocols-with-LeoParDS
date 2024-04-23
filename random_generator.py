@@ -1,11 +1,7 @@
-import random
-
-import pandas as pd
-
-from BP_Class import BP_class
+from BP_Class import *
 from BP_Run import *
 
-from BP_gen import BP_generator, act_names, equivalent_bp, amount_of_actions, single_loop, eliminate_no_cutoff
+from BP_gen import BP_generator, equivalent_bp, single_loop, eliminate_no_cutoff
 
 import concurrent.futures
 
@@ -84,7 +80,7 @@ def generator_and_check_subsume_cs(words_to_add: int, amount_to_generate: int, m
                                    max_number_of_acts: int, version: int, name: str,
                                    cutoff_lim=None, word_lim=None):
     """
-    :param words_to_add: to padded the return CS according to the algorithm
+    :param words_to_add: to pad the return CS according to the algorithm
     :param amount_to_generate: how many such random BPs to generate
     :param min_number_of_states:
     :param max_number_of_states:
@@ -140,10 +136,10 @@ def generator_and_check_subsume_cs(words_to_add: int, amount_to_generate: int, m
     return
 
 
-def generator_and_check_no_cs(words_to_add: int, amount_to_generate: int, min_number_of_states: int,
+def generator_and_check_no_cs(words_to_add, amount_to_generate: int, min_number_of_states: int,
                               max_number_of_states: int, min_number_of_acts: int,
                               max_number_of_acts: int, version: int, name: str,
-                              cutoff_lim=None, len_lim=None, minimal=False, pos_perc=None):
+                              cutoff_lim=None, len_lim=None, minimal=False, pos_perc=None, to_print=True):
     scenario_num = 1
     if minimal:
         df = pd.DataFrame(columns=min_column)
@@ -159,102 +155,109 @@ def generator_and_check_no_cs(words_to_add: int, amount_to_generate: int, min_nu
             bp = BP_generator(number_of_states, number_of_acts)
             no_cutoff_for_sure = eliminate_no_cutoff(bp.bp, bp.bp.initial_state, 0)
             is_single_loop = single_loop(bp.bp)
-
-        print(f"scenario #{scenario_num}: {bp.bp}")
+        if to_print:
+            print(f"scenario #{scenario_num}: {bp.bp}")
         scenario_num += 1
         learner = BP_run(bp.bp)
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            future = return_feuture(cutoff_lim, executor, learner, len_lim, minimal, pos_perc, words_to_add)
-            try:
-                result = future.result(timeout=one_hour)  # Set the desired timeout in seconds
-                bp_min_acts, bp_min_rec, bp_acts, bp_rec, solution, words_added = result
-                print(f"bp_min_acts {bp_min_acts},\n"
-                      f"bp_min_rec {bp_min_rec},\n"
-                      f"bp_acts {bp_acts},\n"
-                      f"bp_rec {bp_rec}")
-            except concurrent.futures.TimeoutError:
-                print("timeouted")
-                bp_acts, bp_rec, solution, words_added = bp.bp.actions, bp.bp.receivers, info_timeout(bp.bp, minimal), \
-                                                         {'positive': {}, 'negative': {}}
-            finally:
-                if solution['failed_converged']:
-                    if minimal:
-                        new_row = pd.DataFrame([solution], columns=min_column)
-                    else:
-                        new_row = pd.DataFrame([solution], columns=non_min_column)
-                    df = pd.concat([df if not df.empty else None, new_row], ignore_index=True)
-                    df.to_csv(f'BP_results_no_cs_{name}_{version}_{str(words_to_add)} sample.csv', index=False)
-                    continue
-                learned_bp = BP_class(len(bp_acts), bp_acts, 0, bp_rec)
+        bp_min_acts, bp_min_rec, bp_acts, bp_rec, sol, words_added = return_future(cutoff_lim, learner, len_lim,
+                                                                                   minimal, pos_perc, words_to_add)
+
+        if to_print:
+            print(f"bp_min_acts {bp_min_acts},\n"
+                  f"bp_min_rec {bp_min_rec},\n"
+                  f"bp_acts {bp_acts},\n"
+                  f"bp_rec {bp_rec}")
+        if sol['failed_converged']:
+            if minimal:
+                new_row = pd.DataFrame([sol], columns=min_column)
+            else:
+                new_row = pd.DataFrame([sol], columns=non_min_column)
+            df = pd.concat([df if not df.empty else None, new_row], ignore_index=True)
+            df.to_csv(f'BP_results_no_cs_{name}_{version}_{str(words_to_add)} sample.csv', index=False)
+            continue
+        learned_bp = BP_class(len(bp_acts), bp_acts, 0, bp_rec)
+        if to_print:
+            print("bp_learned:", learned_bp)
+        right_output = True
+        if words_added['positive'] != dict():
+            for n_c in words_added['positive']:
+                for n_word in words_added['positive'][n_c]:
+                    right_output &= learned_bp.is_feasible(n_c, list(n_word))
+        if right_output:
+            if words_added['negative'] != dict():
+                for n_c in words_added['negative']:
+                    for n_word in words_added['negative'][n_c]:
+                        right_output &= not (learned_bp.is_feasible(n_c, list(n_word)))
+        sol['right_output'] = right_output
+        if to_print:
+            print(f"scenario {scenario_num - 1}: the two BP's are equivalent?:", right_output)
+        if minimal:
+            learned_bp = BP_class(len(bp_min_acts), bp_min_acts, 0, bp_min_rec)
+            if to_print:
                 print("bp_learned:", learned_bp)
-                right_output = True
-                if words_added['positive'] != dict():
-                    for n_c in words_added['positive']:
-                        for n_word in words_added['positive'][n_c]:
-                            right_output &= learned_bp.is_feasible(n_c, list(n_word))
-                if right_output:
-                    if words_added['negative'] != dict():
-                        for n_c in words_added['negative']:
-                            for n_word in words_added['negative'][n_c]:
-                                right_output &= not (learned_bp.is_feasible(n_c, list(n_word)))
-                solution['right_output'] = right_output
-                print(f"scenario {scenario_num - 1}: the two BP's are equivalent?:",
-                      right_output)
-                if minimal:
-                    learned_bp = BP_class(len(bp_min_acts), bp_min_acts, 0, bp_min_rec)
-                    print("bp_learned:", learned_bp)
-                    right_output = True
-                    if words_added['positive'] != dict():
-                        for n_c in words_added['positive']:
-                            for n_word in words_added['positive'][n_c]:
-                                right_output &= learned_bp.is_feasible(n_c, list(n_word))
-                    if right_output:
-                        if words_added['negative'] != dict():
-                            for n_c in words_added['negative']:
-                                for n_word in words_added['negative'][n_c]:
-                                    right_output &= not (learned_bp.is_feasible(n_c, list(n_word)))
-                    solution['minimal_right_output'] = right_output
-                    print(f"scenario {scenario_num - 1}: the two BP's are equivalent?:",
-                          right_output)
-                    new_row = pd.DataFrame([solution],
-                                           columns=min_column)
-                else:
-                    new_row = pd.DataFrame([solution],
-                                           columns=non_min_column)
-                df = pd.concat([df if not df.empty else None, new_row], ignore_index=True)
-                df.to_csv(f'BP_results_no_cs_{name}_{version}_{str(words_to_add)} sample.csv', index=False)
+            right_output = True
+            if words_added['positive'] != dict():
+                for n_c in words_added['positive']:
+                    for n_word in words_added['positive'][n_c]:
+                        right_output &= learned_bp.is_feasible(n_c, list(n_word))
+            if right_output:
+                if words_added['negative'] != dict():
+                    for n_c in words_added['negative']:
+                        for n_word in words_added['negative'][n_c]:
+                            right_output &= not (learned_bp.is_feasible(n_c, list(n_word)))
+            sol['minimal_right_output'] = right_output
+            if to_print:
+                print(f"scenario {scenario_num - 1}: the two BP's are equivalent?: minimal:", right_output)
+            new_row = pd.DataFrame([sol],
+                                   columns=min_column)
+        else:
+            new_row = pd.DataFrame([sol],
+                                   columns=non_min_column)
+        df = pd.concat([df if not df.empty else None, new_row], ignore_index=True)
+        df.to_csv(f'BP_results_no_cs_{name}_{version}_{str(words_to_add)} sample.csv', index=False)
     return
 
 
-def return_feuture(cutoff_lim, executor, learner, len_lim, minimal, pos_perc, words_to_add):
+def return_future(cutoff_lim, learner, len_lim, minimal, pos_perc, words_to_add):
     if cutoff_lim is not None and len_lim is not None:
         if pos_perc is None:
-            future = executor.submit(learner.run_no_cs, words_to_add, False, maximal_procs=cutoff_lim,
-                                     maximal_length=len_lim, minimal=minimal)
+            bp_min_acts, bp_min_rec, bp_acts, bp_rec, sol, words_added = learner.run_no_cs(words_to_add, False,
+                                                                                           maximal_procs=cutoff_lim,
+                                                                                           maximal_length=len_lim,
+                                                                                           minimal=minimal)
         else:
-            future = executor.submit(learner.run_no_cs_pos_perc, words_to_add, pos_perc, len_lim, cutoff_lim,
-                                     minimal)
-
+            bp_min_acts, bp_min_rec, bp_acts, bp_rec, sol, words_added = learner.run_no_cs_pos_perc(words_to_add,
+                                                                                                    pos_perc, len_lim,
+                                                                                                    cutoff_lim, minimal)
     elif cutoff_lim is not None:
         if pos_perc is None:
-            future = executor.submit(learner.run_no_cs, words_to_add, False, maximal_procs=cutoff_lim,
-                                     minimal=minimal)
+            bp_min_acts, bp_min_rec, bp_acts, bp_rec, sol, words_added = learner.run_no_cs(words_to_add, False,
+                                                                                           maximal_procs=cutoff_lim,
+                                                                                           minimal=minimal)
         else:
-            future = executor.submit(learner.run_no_cs_pos_perc, words_to_add, pos_perc, procs_limit=cutoff_lim,
-                                     minimal=minimal)
+            bp_min_acts, bp_min_rec, bp_acts, bp_rec, sol, words_added = learner.run_no_cs_pos_perc(words_to_add,
+                                                                                                    pos_perc,
+                                                                                                    procs_limit=cutoff_lim,
+                                                                                                    minimal=minimal)
     elif len_lim is not None:
         if pos_perc is None:
-            future = executor.submit(learner.run_no_cs, words_to_add, False, maximal_length=len_lim,
-                                     minimal=minimal)
+            bp_min_acts, bp_min_rec, bp_acts, bp_rec, sol, words_added = learner.run_no_cs(words_to_add, False,
+                                                                                           maximal_length=len_lim,
+                                                                                           minimal=minimal)
         else:
-            future = executor.submit(learner.run_no_cs_pos_perc, words_to_add, pos_perc, length_limit=len_lim,
-                                     minimal=minimal)
+            bp_min_acts, bp_min_rec, bp_acts, bp_rec, sol, words_added = learner.run_no_cs_pos_perc(words_to_add,
+                                                                                                    pos_perc,
+                                                                                                    length_limit=len_lim,
+                                                                                                    minimal=minimal)
     else:
         if pos_perc is None:
-            future = executor.submit(learner.run_no_cs, words_to_add, False, minimal=minimal)
+            bp_min_acts, bp_min_rec, bp_acts, bp_rec, sol, words_added = learner.run_no_cs(words_to_add, False,
+                                                                                           minimal=minimal)
         else:
-            future = executor.submit(learner.run_no_cs_pos_perc, words_to_add, pos_perc, minimal=minimal)
-    return future
+            bp_min_acts, bp_min_rec, bp_acts, bp_rec, sol, words_added = learner.run_no_cs_pos_perc(words_to_add,
+                                                                                                    pos_perc,
+                                                                                                    minimal=minimal)
+    return bp_min_acts, bp_min_rec, bp_acts, bp_rec, sol, words_added
 
 
 def generator_and_check(amount_to_generate: int, min_number_of_states: int, max_number_of_states: int,
@@ -282,7 +285,7 @@ def generator_and_check(amount_to_generate: int, min_number_of_states: int, max_
                 result = future.result(timeout=one_hour)  # Set the desired timeout in seconds
                 bp_acts, bp_rec, sol = result
             except concurrent.futures.TimeoutError:
-                print("timeouted")
+                print("timeout")
                 bp_acts, bp_rec, sol = bp.bp.actions, bp.bp.receivers, info_timeout(bp.bp, False)
             finally:
                 if sol['failed_converged']:
@@ -303,8 +306,22 @@ def generator_and_check(amount_to_generate: int, min_number_of_states: int, max_
 
 ''' 
     If you want to generate a batch, as we did in the experiments you can use the following function, 
-    take under account that it might take a long time and uses of CPU and memory 
+    please take under account that it might take a long time as well as uses of CPU and memory 
 '''
-generator_and_check_subsume_cs(0, 50, 2, 4, 0, 3, 2, "bps_batch", 15, 2500)
+for fw in [10, 20]:  # fw is amount of words to add
+    pr = 0.1
+    # if you want to define the positive ratio you can call the next function:
+    # generator_and_check_no_cs(fw, 50, 2, 4, 0, 2, 2, "bps_batch", 15, 20, pos_perc=pr, to_print=False)
+
+    # if you want to see the printing while the inference procedure occurs you can change to_print to be True
+    # (instead of False) or vice versa
+
+    # If you want to check for both BPInf and BPInfMin please use "minimal=True"
+    # If you want to check only BPInf please use "minimal=False"
+
+    # An example for both positive percent being given and BPInfMin being generated:
+    #     generator_and_check_no_cs(fw, 50, 2, 5, 0, 3, 3, "bps_batch", 15, 20, pos_perc=pr, minimal=True)
+
+    generator_and_check_no_cs(fw, 50, 2, 5, 0, 3, 4, "bps_batch", 15, 20)
 
 pass
