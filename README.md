@@ -13,6 +13,19 @@ Swen Jacobs $^2$**
 This artifact serves as an example template for artifacts submitted to ATVA'24
 artifact evaluation.
 
+## Table of Contents
+- [Quickstart](#quickstart)
+- [Requirements](#requirements)
+- [Setup Steps](#setup-steps)
+- [Smoke Test Steps](#smoke-test-steps)
+- [Available Bagde](#available-bagde)
+- [Functional Badge](#functional-badge)
+- [Artifact Directory Structure](#artifact-directory-structure)
+- [Steps to Replicate the Experimental Results](#steps-to-replicate-the-experimental-results)
+- [Reusable Badge](#reusable-badge)
+- [Learning-Broadcast-Protocols-with-LeoParDS](#learning-broadcast-protocols-with-leopards)
+- [About Broadcast Protocols](#about-broadcast-protocols)
+
 # Quickstart
 
 ## Requirements
@@ -55,26 +68,41 @@ The following software is required for running this artifact:
 
 ## Smoke Test Steps   
 
-# -----------TO DO-----------!
+Afyer executing the above 6 steps, in teh docker enviorment:
 
-**Comment**
-After the initial setup of the artifact you should provide a script that
-reviewers can execute to run some experiments on a **very small subset**
-(ideally within 1-2 minutes).
-Provide the output of your run including the required time.
-This will help the reviewers during the **smoke test phase** to quickly check
-whether the artifact was correctly set up and if it is working as intended.
+7. run "python code/Test_run.py"
 
 **Output of Smoke Test Execution**
 <details>
-  <summary>Click to expand</summary>
+  <summary>Click here for the Output of Smoke Test Execution</summary>
 
-```
-Output of smoke test execution.
-```
+
+The output should including visual printing in the docker enviorment as well as a creation of 10 files.
+`BP_results_non_cs_{i}.csv` and `BP_results_subsume_cs_{i}.csv` for $i$ in $[1,2,3,4,5]$
+    
+The first $5$ files, i.e., `BP_results_non_cs_{i}.csv` are randomly generated words, hence the time may vary, however is it created in order to run in less then $3$ min
+    
+The other $5$ files, i.e., `BP_results_subsume_cs_{i}.csv` are taking up to $2$ min to run
+    
+In total this should take up to $5$ minutes running
+
+In `BP_results_subsume_cs_{i}.csv` the output_BP can vary slightly from run to run, 
+however thr bottom line remain the same `right_output` should be **True**:
+
+(see fig below)
+
+![image](https://github.com/Noa-Izsak/Learning-Broadcast-Protocols-with-LeoParDS/assets/62952579/c385bd86-2332-44be-a91a-c160718fda11)
+
+In `BP_results_non_cs_{i}.csv` the output_BP if affected by the randomly generated words, however fot the given test inputs it should be terminat and the output has `right_output` is **True** and `minimal_right_output` is **True**:
+
+(see fig below)
+
+![image](https://github.com/Noa-Izsak/Learning-Broadcast-Protocols-with-LeoParDS/assets/62952579/64f79bd6-4d6a-46c6-b7cd-f2881dc679ec)
+
+***Example output are given, but note that as we mentioned it could vary*** 
+
+The only importent thing is that `right_output` is **True** and in the second case that also  `minimal_right_output` is **True** 
 </details>
-
----
 
 
 # Available Bagde
@@ -104,9 +132,10 @@ artifact and add a description for each one.
   - `paper.pdf`: An updated version of the submitted paper
   - Directory `result`
     - `result.csv`: Archive containing all files used for the evaluation
-  - `<image>.tar.gz`: The docker image to replicate the evaluation.
-  - `Test_run.py`: Script to run an evaluation
-  - `random_generator.py` : Script we use to run the evaluation
+  - `image.tar`: The docker image to replicate the evaluation.
+  - `Test_run.py`: Script to run a smoke test evaluation
+  - `ReplicateExperimentalResults.py`: Script to reproduced our evaluation
+  - `random_generator.py` : Script we used to run the evaluation
   - `BP_Class.py` : Where BP_class is defined, that is the BP object itself
   - `BP_gen.py` : Where BP_generator class is defined, that allow a user to generate a random BP
   - `BP_Run.py` : Functions that allow us to infer on BPs for diffrent needs, i.e.:
@@ -120,74 +149,66 @@ artifact and add a description for each one.
 
 ## Steps to Replicate the Experimental Results
 
-# -----------TO DO-----------!
-**Comment**
-Describe experimental setup including the used resource limits and the used
-hardware.
-If the full set of experiments will not finish within **four hours** of
-runtime, prepare a representative subset that will finish within **two hours**.
-In this case, also **include the instructions for running the full experimental
-evaluation**.
+We ran all experiments on a cluster with Intel Xeon E5-2620 v4 CPUs. We
+allocated one CPU core and 30GB of RAM.
+For our experiments we randomly generated $4149$ BPs with a number of states in $[2,20]$, number of actions in $[0,8]$. 
+For each of these BPs we generated a random sample with a random number of words, $F_w$, in $[5,100]$; with a bound of ${\overline{\mbox{M}}_{l}}=20$ on the length of the words, 
+and a bound of $20$ for the number of processes.
+The ratio of positive examples in the sample ranges between $0$ and $1$.
+
+**Note: Due to the fact the running the whole datset should take several days, we present both the way to run the whole expirement and a subset of it that will take about an hour and a helf**
 
 ### 1. Start the Docker Container
 
-# -----------TO DO-----------!
+- Install Docker as described at https://docs.docker.com/get-docker/.
+
+- Download the artifact `Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip `
+  from https://zenodo.org/record/`<record>`
+
+- Unzip the artifact:
+
+  **Note:** This will unzip the artifact directory structure and files into the
+  current working directory, including the compressed docker image
+  `image.tar`.
+  ```
+  unzip Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip
+  ```
+
+1. run ```docker stop bpcodecontainer```
+
+2. run ```docker rm bpcodecontainer```
+
+3. run ```docker rmi bpcode:bpcode```
+
+4. run ```docker build -t bpcode:bpcode .``` or import the image file (i.e. ```docker load -i image.tar```)
+
+   This will import the docker image named `<image-name>`. This might take a few minutes.
+
+5. run ```docker run -d -it --name bpcodecontainer -v .:/code bpcode:bpcode```
+
+6. run ```docker exec -it bpcodecontainer /bin/bash```
+
 **Note**
 Make sure to follow the setup steps to import the docker image before
 continuing with this step.
 
-```
-docker run -it <image-name>
-```
-
 ### 2. Execute Evaluation Runs
 
-# -----------TO DO-----------!
-**Comment** List steps to replicate the evaluation runs in the paper.
+#### For a representative subset we call teh function with input paramter 1
+7. run "python code/ReplicateExperimentalResults.py 1"
+
+#### For the whole expirements we call teh function with input paramter 0
+7. run "python code/ReplicateExperimentalResults.py 0"
 
 
 ### 3. Extract Numbers presented in the Paper
 
-# -----------TO DO-----------!
-**Note**
-To copy files from the docker container you can use `docker container cp`
-(https://docs.docker.com/engine/reference/commandline/container_cp/).
+In order to extract the data presented in the Table as well as the figures can be generated by running:
 
-#### 3.1 Extract Numbers for Figure 1
+- run "python code/main.py"
 
-# -----------TO DO-----------!
-```
-<command to generate Fig. 1>
-```
+The table data will be presented in the output screen and the 4 figures will be saved as `plot 6(a).png` resp. `6(b)/7(a)/7(b)` for the other three. Can be accessed via the docker app (under **Actions** -> three dots (i.e. Kebab menu) -> **View details** -> **Files** -> You can save the plot and view them there)
 
-# -----------TO DO-----------!
-**Output**
-<details>
-  <summary>Click to expand</summary>
-
-```
-Results for Figure 1.
-```
-</details>
-
-# -----------TO DO-----------!
-#### 3.2 Generate Table 2
-
-```
-# -----------TO DO-----------!
-<command to generate Table 2>
-```
-
-# -----------TO DO-----------!
-**Output**
-<details>
-  <summary>Click to expand</summary>
-
-```
-Table 2.
-```
-# -----------TO DO-----------!
-</details>
 
 # Reusable Badge
 
@@ -421,8 +442,6 @@ A fucntion that do so is ``run_a_random_bp_example()``
 
 A posible output can be:
 ```text
-  counter:  1
-  counter:  2
   SAT
   self known actions  ['d', 'a', 'b', 'c']
   self known states  [0, 1, 2]
@@ -454,8 +473,6 @@ A fucntion that do so is ``run_a_given_bp_example(bp1)`` for a given bp
 
 And creating a CS and inferring for it will be:
 ```python
-counter:  1
-counter:  2
 SAT
 self known actions  ['a', 'b']
 self known states  [0, 1]
@@ -484,4 +501,3 @@ The system is correct only if it satisfies the specification for any number $n$ 
 
 A **broadcast protocol** $B=(S,s_0,L,R)$ consists of a finite set of states $S$ with an initial state $s_0 \in S$, a set of labels $L$
 and a transition relation $R\subseteq S \times L \times S$, where $L = \{ a!!, a?? \mid a \in A \}$ for some set of actions $A$. A transition labeled with $a!!$ is a broadcast **sending  transition**, and a transition labeled with $a??$ is a broadcast **receiving transition**, also called a **response**.
-
