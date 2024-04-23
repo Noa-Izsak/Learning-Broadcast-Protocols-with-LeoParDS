@@ -284,7 +284,7 @@ class LearnerBp:
         limit_run_procs = max(list_pos,
                               list_neg)
         for counter in range(1, limit_run_procs + 1):
-            print("counter: ", counter)
+            # print("counter: ", counter)
             if counter == 1:
                 # Then we already took care about the current_learn_pos, we also took care about current_learn_neg
                 # for 1 action words, which are not enabled from the initial state.

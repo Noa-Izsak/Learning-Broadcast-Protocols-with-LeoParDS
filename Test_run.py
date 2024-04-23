@@ -76,12 +76,12 @@ def run_a_given_bp_example(bp_example, name, is_partial):
     max_len = 20
 
     learner = BP_run(bp_example)
-    minimal = True
+    minimal = is_partial
     if is_partial:
-        bp_min_acts, bp_min_rec, bp_acts, bp_rec, sol, add_words = learner.run_no_cs(20, False, cutoff, max_len,
+        bp_min_acts, bp_min_rec, bp_acts, bp_rec, sol, add_words = learner.run_no_cs(10, False, cutoff, max_len,
                                                                                      minimal)
     else:
-        bp_min_acts, bp_min_rec, bp_acts, bp_rec, sol = learner.run_subsume_cs(0, False, cutoff, timer_c, word_lim=2500)
+        bp_min_acts, bp_min_rec, bp_acts, bp_rec, sol = learner.run_subsume_cs(0, False, cutoff, word_lim=1500)
     if sol['failed_converged']:
         if is_partial:
             new_row1 = pd.DataFrame([sol], columns=min_column)

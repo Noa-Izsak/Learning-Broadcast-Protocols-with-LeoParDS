@@ -1,3 +1,5 @@
+import sys
+
 import pandas as pd
 
 import ast
@@ -98,26 +100,21 @@ def parse_words(template):
     return positive_words_dict, negative_words_dict
 
 
-def replicate_experimental_results(version, name, to_print=False, subset_size=None):
+def replicate_experimental_results(name, to_print=False, subset_size=None):
     """
     Will take the file (i.e. results.csv) under Results folder and inference for the given BPs
     """
-    import os
-    folder_path = './Results'
+    file_path = './Results/results.csv'
     data = pd.DataFrame()
-    for fp in [folder_path]:
-        for file_name in os.listdir(fp):
-            if file_name.endswith('.csv'):
-                file_path = os.path.join(fp, file_name)
-                df_origin = pd.read_csv(file_path)
-                df1 = df_origin.copy()
-                data = pd.concat([data, df1])
-            break
+    df_origin = pd.read_csv(file_path)
+    df1 = df_origin.copy()
+    data = pd.concat([data, df1])
+
     data = data.drop_duplicates()
     data = data.drop_duplicates(subset=['origin_BP', 'output_BP', 'words_added'])
-    data = data.loc[:, ['origin_BP', 'words_added']]
-    data_origin = data['origin_BP']
-    data_words = data['words_added']
+
+    data_origin = data['origin_BP'].copy()
+    data_words = data['words_added'].copy()
 
     df = pd.DataFrame(columns=non_min_column)
 
@@ -134,14 +131,30 @@ def replicate_experimental_results(version, name, to_print=False, subset_size=No
                                               to_print=to_print, scenario_num=i)
         df = pd.concat([df if not df.empty else None, new_r], ignore_index=True)
 
-        df.to_csv(f'BP_results_no_cs_{name}_{version} sample.csv', index=False)
+        df.to_csv(f'{name}.csv', index=False)
 
 
 """
-In order to reproduce the results for the first 10 BPs in the sample
+In order to reproduce the results for the first 5 BPs in the sample
 If you want all of them just remove the last parameter, i.e.:
-replicate_experimental_results(1, "results_infer", True)
+replicate_experimental_results("results_infer", True)
 
 Please note that it will take several days and alot of computerized power
 """
-replicate_experimental_results(1, "results_infer", False, 5)
+# For running in pycharm environment instead of docker, comment the main part and uncomment the row below
+# replicate_experimental_results("results_infer", True, 5)
+
+if __name__ == '__main__':
+    if len(sys.argv) < 1:
+        print("Usage: python ReplicateExperimentalResults.py <arg1>,\n"
+              "Please provide an argument, 1 for a representative subset and 0 for full evaluation")
+        pass
+
+    arg1 = sys.argv[1]
+
+    if arg1 == '1':
+        replicate_experimental_results("results_infer", True, 5)
+    elif arg1 == '0':
+        replicate_experimental_results("results_infer", True)
+    else:
+        print("Please enter 1 for a representative subset and 0 for full evaluation")

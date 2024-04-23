@@ -24,8 +24,8 @@ def plot_6_a(data):
     plt.xlabel('#states in original bp', fontsize=font)
     plt.ylabel('#states in agreeing bp', fontsize=font)
     ax.set_zlabel('SMT duration (sec)', fontsize=font)
-    plt.show()
-
+    plt.savefig('plot 6(a).png')
+    pass
 
 def plot_6_b(selected_data):
     fig = plt.figure()
@@ -45,7 +45,7 @@ def plot_6_b(selected_data):
     plt.xlabel('#states', fontsize=font)
     plt.ylabel('#words in the sample', fontsize=font)
     ax.set_zlabel('SMT duration (sec)', fontsize=font)
-    plt.show()
+    plt.savefig('plot 6(b).png')
     pass
 
 
@@ -67,6 +67,7 @@ def plot_7_a(selected_data):
     plt.xlabel('#states', fontsize=font)
     plt.ylabel('#actions', fontsize=font)
     ax.set_zlabel('SMT duration (sec)', fontsize=font)
+    plt.savefig('plot 7(a).png')
     plt.show()
     pass
 
@@ -89,7 +90,7 @@ def plot_7_b(data):
     plt.xlabel('#positive words in the sample', fontsize=font)
     plt.ylabel('#negative words in the sample', fontsize=font)
     ax.set_zlabel('SMT duration (sec)', fontsize=font)
-    plt.show()
+    plt.savefig('plot 7(b).png')
     pass
 
 
@@ -113,12 +114,11 @@ def plot4(data):
     plt.xlabel('#states', fontsize=font)
     plt.ylabel('positive ratio', fontsize=font)
     ax.set_zlabel('SMT duration (sec)', fontsize=font)
-    plt.show()
     pass
 
 
 def states_amount_positive_sample_plot(selected_data):
-    print("states_amount_positive_sample_plot")
+
     scatter = plt.scatter(selected_data['amount_of_states_in_origin'].values.tolist(),
                           selected_data['amount_of_states_in_output'].values.tolist(),
                           selected_data['CS_size'].values.tolist(),
@@ -291,15 +291,11 @@ def sample_size_percentage2(sd, a, b):
 
 
 def no_cs_pos_perc_printing():
-    folder_path = './Results'
+    file_path = './Results/results.csv'
     data = pd.DataFrame()
-    for fp in [folder_path]:
-        for file_name in os.listdir(fp):
-            if file_name.endswith('.csv'):
-                file_path = os.path.join(fp, file_name)
-                df_origin = pd.read_csv(file_path)
-                df1 = df_origin.copy()
-                data = pd.concat([data, df1])
+    df_origin = pd.read_csv(file_path)
+    df1 = df_origin.copy()
+    data = pd.concat([data, df1])
     data = data.drop_duplicates()
     print(f"in min version there are : {len(data['solve_SMT_time'])}")
 
@@ -332,14 +328,14 @@ def no_cs_pos_perc_printing():
     """ Plot 7(a) in the paper"""
     plot_7_a(data)
 
-    """ some other plots """
-    plot4(data)
+    # """ some other plots """
+    # plot4(data)
+    #
+    # states_amount_positive_sample_plot(data)
+    #
+    # other_plots(data)
 
-    states_amount_positive_sample_plot(data)
-
-    other_plots(data)
-
-    data.to_csv('all the examples with flag is_cs.csv', index=False)
+    data.to_csv('all the examples.csv', index=False)
     pass
 
 

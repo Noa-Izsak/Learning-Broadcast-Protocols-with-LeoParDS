@@ -322,6 +322,6 @@ for fw in [10, 20]:  # fw is amount of words to add
     # An example for both positive percent being given and BPInfMin being generated:
     #     generator_and_check_no_cs(fw, 50, 2, 5, 0, 3, 3, "bps_batch", 15, 20, pos_perc=pr, minimal=True)
 
-    generator_and_check_no_cs(fw, 50, 2, 5, 0, 3, 4, "bps_batch", 15, 20)
+    generator_and_check_no_cs(fw, 10, 2, 5, 0, 3, 4, "bps_batch", 15, 20)
 
 pass
