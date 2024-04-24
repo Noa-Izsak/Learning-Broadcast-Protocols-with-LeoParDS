@@ -39,7 +39,7 @@ The following software is required for running this artifact:
 - Install Docker as described at https://docs.docker.com/get-docker/.
 
 - Download the artifact `Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip `
-  from https://zenodo.org/record/`<record>`
+  from [https://zenodo.org/record/`<record>`](https://zenodo.org/records/10968038)
 
 - Unzip the artifact:
 
@@ -113,7 +113,7 @@ The only importent thing is that `right_output` is **True** and in the second ca
 # Available Bagde
 
 The artifact was uploaded to Zenodo and is available at
-https://zenodo.org/record/`<record>` (DOI: `10.5281/zenodo.10968038`).
+[https://zenodo.org/record/`<record>`](https://zenodo.org/records/10968038) (DOI: `10.5281/zenodo.10968038`).
 
 # Functional Badge
 
@@ -179,7 +179,7 @@ The ratio of positive examples in the sample ranges between $0$ and $1$.
 - Install Docker as described at https://docs.docker.com/get-docker/.
 
 - Download the artifact `Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip `
-  from https://zenodo.org/record/`<record>`
+  from [https://zenodo.org/record/`<record>`](https://zenodo.org/records/10968038)
 
 - Unzip the artifact:
 
