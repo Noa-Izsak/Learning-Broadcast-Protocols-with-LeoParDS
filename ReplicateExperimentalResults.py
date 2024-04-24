@@ -122,9 +122,7 @@ def replicate_experimental_results(name, to_print=False, subset_size=None):
     length = len(data)
     if subset_size is not None:
         length = subset_size
-    ss_time = time.perf_counter()
     for i in range(length):
-        start_time = time.perf_counter()
         template_string = data_origin.iloc[i]
         num_states, actions_dict, initial_state, receivers_dict = parse_template(template_string)
         template_string = data_words.iloc[i]
@@ -133,11 +131,7 @@ def replicate_experimental_results(name, to_print=False, subset_size=None):
         new_r = generator_given_bp_and_sample(num_states, actions_dict, initial_state, receivers_dict, pos, neg,
                                               to_print=to_print, scenario_num=i)
         df = pd.concat([df if not df.empty else None, new_r], ignore_index=True)
-        end_time = time.perf_counter()
-        print(f"{i} took {end_time-start_time} sec")
         df.to_csv(f'{name}.csv', index=False)
-    ee_time = time.perf_counter()
-    print(f"in total it took {ee_time-ss_time} sec")
 
 
 """
@@ -148,7 +142,7 @@ replicate_experimental_results("results_infer", True)
 Please note that it will take several days and alot of computerized power
 """
 # For running in pycharm environment instead of docker, comment the main part and uncomment the row below
-# replicate_experimental_results("results_infer", True, 5)
+# replicate_experimental_results("results_infer", True, 15)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
