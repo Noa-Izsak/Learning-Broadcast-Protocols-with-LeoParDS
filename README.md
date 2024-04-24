@@ -102,7 +102,7 @@ In `BP_results_non_cs_{i}.csv` the output_BP if affected by the randomly generat
 
 ![image](https://github.com/Noa-Izsak/Learning-Broadcast-Protocols-with-LeoParDS/assets/62952579/64f79bd6-4d6a-46c6-b7cd-f2881dc679ec)
 
-***Example output are given, but note that as we mentioned it could vary*** 
+***Example output are given, but note that as we mentioned it could vary, under `Runing example for Test_run`*** 
 
 The only importent thing is that `right_output` is **True** and in the second case that also  `minimal_right_output` is **True** 
 </details>
