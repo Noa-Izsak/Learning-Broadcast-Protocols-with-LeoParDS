@@ -23,6 +23,7 @@ artifact evaluation.
 - [Artifact Directory Structure](#artifact-directory-structure)
 - [Steps to Replicate the Experimental Results](#steps-to-replicate-the-experimental-results)
 - [Reusable Badge](#reusable-badge)
+- [Building the Docker Image](#building-the-docker-image)
 - [Learning-Broadcast-Protocols-with-LeoParDS](#learning-broadcast-protocols-with-leopards)
 - [About Broadcast Protocols](#about-broadcast-protocols)
 
@@ -116,7 +117,7 @@ https://zenodo.org/record/`<record>` (DOI: `10.5281/zenodo.10968038`).
 # Functional Badge
 
 In the paper we run ```generator_and_check_subsume_cs``` for varius inputs and for every one that terminated under our criterion we added to the dataset we exemined.
-Since this is random generation of BPs, one may not generated the same set of BPs by itself but it is alright, scince we aim to for other foelds to use this tool for theor pwn fields and find new uses for him.
+Since this is random generation of BPs, one may not generated the same set of BPs by itself but it is alright, since we aim to for other fields to use this tool for their own fields and find new uses for it.
 
 We include the data generated for the experiments in the ```results.csv```. 
 
@@ -406,7 +407,7 @@ For bith of them we run the function ``learn`` taht is under ``BP_Learn.py``. Th
 
 ## Example 1:
 The results will be saved in the csv file : BP_results_cs_subsumed
-Note, scince this is random generation procedure, we cannot geratnee termination, therfore, running this procedure may result in "print(f"The random generated BP has either no cutoff or it is greater then {cutoff}")". Id it do converage then the procedure will return an appropriate random generated BP and an Infered BP from the sample
+Note, since this is random generation procedure, we cannot geratnee termination, therfore, running this procedure may result in "print(f"The random generated BP has either no cutoff or it is greater then {cutoff}")". Id it do converage then the procedure will return an appropriate random generated BP and an Infered BP from the sample
 ```python
   def run_a_random_bp_example(minimal=False):
     if minimal:
