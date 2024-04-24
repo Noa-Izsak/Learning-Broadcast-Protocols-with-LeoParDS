@@ -214,8 +214,12 @@ continuing with this step.
 #### For a representative subset we call the function with input paramter 1
 8. run "python ReplicateExperimentalResults.py 1"
 
+    *Running the representative subset should take up to 2 hours*
+
 #### For the whole expirements we call the function with input paramter 0
 8. run "python ReplicateExperimentalResults.py 0"
+
+    *Note: Running the whole datset should will take significant computing time (several days)*
 
 
 ### 3. Extract Numbers presented in the Paper
