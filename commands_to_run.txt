@@ -1,0 +1,17 @@
+0. run "docker stop bpcodecontainer"
+
+1. run "docker rm bpcodecontainer"
+
+2. run "docker rmi bpcode:bpcode"
+
+3. run "docker build -t bpcode:bpcode ." or import the image file (i.e. "docker load -i image.tar")
+
+4. run "docker run -d -it --name bpcodecontainer -v .:/code bpcode:bpcode"
+
+5. run "docker exec -it bpcodecontainer /bin/bash"
+
+6. run "cd code"
+
+run every time you want to run a python file,
+if you want to run "Test_run" file then:
+7. run "python Test_run.py"
