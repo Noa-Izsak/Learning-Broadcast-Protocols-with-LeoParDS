@@ -369,7 +369,6 @@ def print_info(data):
 
 
 if __name__ == '__main__':
-    import os
     import pandas as pd
     import matplotlib.pyplot as plt
 
