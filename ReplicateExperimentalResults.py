@@ -145,16 +145,17 @@ Please note that it will take several days and alot of computerized power
 # replicate_experimental_results("results_infer", True, 5)
 
 if __name__ == '__main__':
-    if len(sys.argv) < 1:
+    if len(sys.argv) < 2:
         print("Usage: python ReplicateExperimentalResults.py <arg1>,\n"
               "Please provide an argument, 1 for a representative subset and 0 for full evaluation")
         pass
-
-    arg1 = sys.argv[1]
-
-    if arg1 == '1':
-        replicate_experimental_results("results_infer", True, 5)
-    elif arg1 == '0':
-        replicate_experimental_results("results_infer", True)
     else:
-        print("Please enter 1 for a representative subset and 0 for full evaluation")
+        arg1 = sys.argv[1]
+
+        if arg1 == '1':
+            replicate_experimental_results("results_infer", True, 5)
+        elif arg1 == '0':
+            replicate_experimental_results("results_infer", True)
+        else:
+            print("Please enter 1 for a representative subset and 0 for full evaluation")
+    pass
