@@ -172,7 +172,7 @@ For each of these BPs we generated a random sample with a random number of words
 and a bound of $20$ for the number of processes.
 The ratio of positive examples in the sample ranges between $0$ and $1$.
 
-**Note: Due to the fact the running the whole datset should take several days, we present both the way to run the whole expirement and a subset of it that will take about an hour and a helf**
+**Note: Due to the fact the running the whole datset should take several days, we present both the way to run the whole expirement and a subset of it that will take up to two hours**
 
 ### 1. Start the Docker Container
 
@@ -215,7 +215,7 @@ continuing with this step.
 #### For a representative subset we call the function with input paramter 1
 8. run ``python ReplicateExperimentalResults.py 1``
 
-    ***Running the representative subset should take up to 2 hours***
+    ***Running the representative subset should about 2 hours***
 
 #### For the whole expirements we call the function with input paramter 0
 8. run ``python ReplicateExperimentalResults.py 0``
