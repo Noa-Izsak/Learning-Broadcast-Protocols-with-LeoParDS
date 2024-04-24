@@ -1,0 +1,5 @@
+numpy==1.26.4
+future==0.18.2
+pandas==2.2.1
+z3-solver==4.12.2.0
+matplotlib~=3.5.1
