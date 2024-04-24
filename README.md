@@ -73,7 +73,7 @@ The following software is required for running this artifact:
 
 After executing the above 7 steps, in the docker enviorment:
 
-8. run "python Test_run.py"
+8. run ``python Test_run.py``
 
 **Output of Smoke Test Execution**
 <details>
