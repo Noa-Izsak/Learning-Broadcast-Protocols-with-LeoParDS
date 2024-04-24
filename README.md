@@ -136,6 +136,17 @@ artifact and add a description for each one.
   - `paper.pdf`: An updated version of the submitted paper
   - Directory `Result`
     - `result.csv`: Archive containing all files used for the evaluation
+  - Directory `Runing example for Test_run`
+      -  `BP_results_non_cs_1.csv`
+      -  `BP_results_non_cs_2.csv`
+      -  `BP_results_non_cs_3.csv`
+      -  `BP_results_non_cs_4.csv`
+      -  `BP_results_non_cs_5.csv`
+      -  `BP_results_subsume_cs_1.csv`
+      -  `BP_results_subsume_cs_2.csv`
+      -  `BP_results_subsume_cs_3.csv`
+      -  `BP_results_subsume_cs_4.csv`
+      -  `BP_results_subsume_cs_5.csv`
   - `image.tar`: The docker image to replicate the evaluation.
   - `Test_run.py`: Script to run a smoke test evaluation
   - `ReplicateExperimentalResults.py`: Script to reproduced our evaluation
