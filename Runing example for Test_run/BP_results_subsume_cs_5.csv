@@ -1,0 +1,8 @@
+failed_converged,timeout,amount_of_states_in_origin,amount_of_states_in_output,origin_BP,output_BP,cutoff,CS_development_time,CS_positive_size,CS_negative_size,words_added,longest_word_in_CS,solve_SMT_time,right_output
+False,False,2,2,"states: 2,
+ actions: {0: {'a': 1}, 1: {'b': 0}},
+initial: 0,
+receivers: {0: {'a': 1, 'b': 0}, 1: {'a': 1, 'b': 0}}","states: 2,
+actions: {0: {'a': 1}, 1: {'b': 0}},
+initial: 0,
+receivers: {0: {'a': 1, 'b': 1}, 1: {'a': 1, 'b': 0}}",2,0.0001336939967586659,4,4,"{'positive': {}, 'negative': {}}",4,0.0069971080010873266,"(None, None, True)"

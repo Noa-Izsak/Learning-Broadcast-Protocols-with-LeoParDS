@@ -1,0 +1,11 @@
+failed_converged,timeout,amount_of_states_in_origin,amount_of_states_in_output,origin_BP,output_BP,cutoff,CS_development_time,CS_positive_size,CS_negative_size,words_added,longest_word_in_CS,solve_SMT_time,right_output,amount_of_states_in_minimal_output,minimal_output_BP,minimal_solve_SMT_time,minimal_right_output
+False,False,2,2,"states: 2,
+ actions: {0: {'a': 1}, 1: {'b': 0}},
+initial: 0,
+receivers: {0: {'a': 1, 'b': 0}, 1: {'a': 1, 'b': 0}}","states: 2,
+actions: {0: {'K': 0}, 1: {'b': 1, 'a': 1}},
+initial: 0,
+receivers: {0: {'b': 0, 'a': 0, 'K': 0}, 1: {'b': 1, 'a': 1, 'K': 1}}",30,0.0002996039984282106,0,10,"{'positive': {}, 'negative': {6: ['aaaabaaababbabbabb', 'aababaabbababbbaab'], 11: ['baababa'], 12: ['abbbbababbabab'], 14: ['aa'], 17: ['ababbbaaaaaaabaab'], 21: ['bbbbbbbbaab'], 23: ['abbaaabababaabbbbaab'], 29: ['baababbbbaaaabb'], 30: ['bbbaaaaabab']}}",20,0.005375954002374783,True,2,"states: 2,
+actions: {0: {'K': 0}, 1: {'b': 1, 'a': 1}},
+initial: 0,
+receivers: {0: {'b': 0, 'a': 0, 'K': 0}, 1: {'b': 1, 'a': 1, 'K': 1}}",0,True
