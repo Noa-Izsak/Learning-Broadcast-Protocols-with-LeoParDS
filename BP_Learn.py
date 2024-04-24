@@ -908,6 +908,7 @@ class LearnerBp:
 
 if __name__ == '__main__':
 
+    """ Running example :"""
     df = pd.DataFrame(columns=min_column)
 
     bp1_1 = BP_class(2, {0: {'a': 1}, 1: {'b': 0}}, 0, {0: {'a': 1, 'b': 0}, 1: {'a': 1, 'b': 0}})
