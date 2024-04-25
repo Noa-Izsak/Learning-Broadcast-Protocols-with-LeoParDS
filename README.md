@@ -36,10 +36,9 @@ The following software is required for running this artifact:
 - [docker](https://docs.docker.com/get-docker/)
 
 ## Setup Steps
-- Install Docker as described at https://docs.docker.com/get-docker/.
+- Install Docker by following the instructions at https://docs.docker.com/get-docker/.
 
-- Download the artifact `Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip `
-  from [https://zenodo.org/record/`<record>`](https://zenodo.org/records/10968038)
+- Download the artifact Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip from [https://zenodo.org/record/`<record>`](https://zenodo.org/records/10968038)
 
 - Unzip the artifact:
 
@@ -50,30 +49,51 @@ The following software is required for running this artifact:
   unzip Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip
   ```
 
-1. run ```docker stop bpcodecontainer```
+**1.** Stop the existing Docker container:
 
-2. run ```docker rm bpcodecontainer```
+    docker stop bpcodecontainer
 
-3. run ```docker rmi bpcode:bpcode```
+**2.** Remove the Docker container:
 
-4. run ```docker build -t bpcode:bpcode .``` or import the image file (i.e. ```docker load -i image.tar```)
+    docker rm bpcodecontainer
 
-   This will import the docker image named `<image-name>`. This might take a few minutes.
+**3.** Remove the Docker image:
 
-5. run ```docker run -d -it --name bpcodecontainer -v .:/code bpcode:bpcode```
+    docker rmi bpcode:bpcode
 
-6. run ```docker exec -it bpcodecontainer /bin/bash```
+**4.** Build the Docker image:
 
-  **Note** This will spin up a new docker container in which the following
-  steps should be executed.
+    docker build -t bpcode:bpcode . 
+        
+
+or import the image file:
+
+    docker load -i image.tar
+    
+        
+This will import the docker image named `<image>`. This might take a few minutes.
+
+**5.** Run the Docker container:
+
+    docker run -d -it --name bpcodecontainer -v .:/code bpcode:bpcode
+
+**6.** Access the Docker container:
+
+    docker exec -it bpcodecontainer /bin/bash
+
+  **Note** This will start a new Docker container where the following steps should be executed.
   
-7. run ``cd code``
+**7.** Inside the Docker environment, change to the code directory:
+
+    cd code
 
 ## Smoke Test Steps   
 
-After executing the above 7 steps, in the docker enviorment:
+After completing the above 7 steps, within the Docker environment:
 
-8. run ``python Test_run.py``
+**8.** Execute the smoke test:
+
+    python Test_run.py
 
 **Output of Smoke Test Execution**
 <details>
@@ -81,48 +101,44 @@ After executing the above 7 steps, in the docker enviorment:
     
 .
 
-The output should including visual printing in the docker enviorment as well as a creation of $10$ files.
+The output should including visual printing, along with the creation of 10 files:
 
-`BP_results_non_cs_{i}.csv` and `BP_results_subsume_cs_{i}.csv` for $i$ in $[1,2,3,4,5]$
+- Files named `BP_results_non_cs_{i}.csv` and `BP_results_subsume_cs_{i}.csv` for $i$ in $[1,2,3,4,5]$.
     
-The first $5$ files, i.e., `BP_results_non_cs_{i}.csv` are randomly generated words, hence the time may vary, however is it created in order to run in less then $3$ min
+    - The first $5$ files, (`BP_results_non_cs_{i}.csv`) contain randomly generated words, so the execution time may vary but should be completed in less than $3$ minutes.
     
-The other $5$ files, i.e., `BP_results_subsume_cs_{i}.csv` are taking up to $2$ min to run
+    - The other $5$ files, (`BP_results_subsume_cs_{i}.csv`) ake up to $2$ minutes to run.
     
-In total this should take up to $5$ minutes running
+The entire process should take up to $5$ minutes to complete.
 
-In `BP_results_subsume_cs_{i}.csv` the output_BP can vary slightly from run to run, 
-however the bottom line remain the same `right_output` should be **True**:
-
-(see fig below)
+In `BP_results_subsume_cs_{i}.csv` the `output_BP` might slightly vary between runs, but `right_output` should always be **True** (refer to figure below):
 
 ![image](https://github.com/Noa-Izsak/Learning-Broadcast-Protocols-with-LeoParDS/assets/62952579/c385bd86-2332-44be-a91a-c160718fda11)
 
-In `BP_results_non_cs_{i}.csv` the output_BP if affected by the randomly generated words, however fot the given test inputs it should be terminat and the output has `right_output` is **True** and `minimal_right_output` is **True**:
-
-(see fig below)
+For `BP_results_non_cs_{i}.csv` the `output_BP` is influenced by randomly generated words, but for the provided test inputs, it should terminate with `right_output` as **True** and `minimal_right_output` as **True** (refer to figure below):
 
 ![image](https://github.com/Noa-Izsak/Learning-Broadcast-Protocols-with-LeoParDS/assets/62952579/64f79bd6-4d6a-46c6-b7cd-f2881dc679ec)
 
-***Example output are given, but note that as we mentioned it could vary, under `Runing example for Test_run`*** 
+***Note: Example outputs are provided, but they may vary. Refer to `Runing example for Test_run` folder.*** 
 
-The only importent thing is that `right_output` is **True** and in the second case that also  `minimal_right_output` is **True** 
+The critical aspect is ensuring `right_output` is **True**, and for the second case, `minimal_right_output` is also **True** 
 </details>
 
 
 # Available Bagde
 
-The artifact was uploaded to Zenodo and is available at
+The artifact has been uploaded to Zenodo and is accessible at
 [https://zenodo.org/record/`<record>`](https://zenodo.org/records/10968038) (DOI: `10.5281/zenodo.10968038`).
 
 # Functional Badge
 
-In the paper we run ```generator_and_check_subsume_cs``` for varius inputs and for every one that terminated under our criterion we added to the dataset we exemined.
-Since this is random generation of BPs, one may not generated the same set of BPs by itself but it is alright, since we aim to for other fields to use this tool for their own fields and find new uses for it.
+In our paper, we executed ```generator_and_check_subsume_cs``` , and for each input that terminated according to our criteria as explained in the paper, we added it to the dataset we examined.
+Due to the random generation of Broadcast Protocols (BPs), it is possible that running the tool independently may not reproduce the exact set of BPs. 
+However, this variability is acceptable, as our aim is to encourage other fields to utilize this tool for their own purposes and explore new applications.
 
-We include the data generated for the experiments in the ```results.csv```. 
+We have included the experiment-generated data in ```results.csv```. 
 
-***Note:*** Generating the data took several days of compute time on multiple compute nodes using a cluster. The produced files are very large and checking any set of the files will take significant computing time.
+***Note:*** Generating this data required several days of compute time across multiple compute nodes using a cluster. The resulting files are substantial in size, and regenrate these files will demand significant computing resources.
 
 
 ## Artifact Directory Structure
@@ -174,85 +190,115 @@ The ratio of positive examples in the sample ranges between $0$ and $1$.
 
 **Note: Due to the fact the running the whole datset should take several days, we present both the way to run the whole expirement and a subset of it that will take up to two hours**
 
+To reproduce our experimental results, follow these steps:
+
 ### 1. Start the Docker Container
 
-- Install Docker as described at https://docs.docker.com/get-docker/.
+- Install Docker by following the instructions at: //docs.docker.com/get-docker/.
 
 - Download the artifact `Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip `
   from [https://zenodo.org/record/`<record>`](https://zenodo.org/records/10968038)
 
 - Unzip the artifact:
 
-  **Note:** This will unzip the artifact directory structure and files into the
-  current working directory, including the compressed docker image
+  **Note:** This will extract the artifact directory structure and files into the current working directory, including the compressed Docker image 
   `image.tar`.
   ```
   unzip Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip
   ```
 
-1. run ```docker stop bpcodecontainer```
+**1.** Stop the existing Docker container:
 
-2. run ```docker rm bpcodecontainer```
+```docker stop bpcodecontainer```
 
-3. run ```docker rmi bpcode:bpcode```
+**2.** Remove the Docker container:
 
-4. run ```docker build -t bpcode:bpcode .``` or import the image file (i.e. ```docker load -i image.tar```)
+```docker rm bpcodecontainer```
 
-   This will import the docker image named `<image-name>`. This might take a few minutes.
+**3.** Remove the Docker image:
 
-5. run ```docker run -d -it --name bpcodecontainer -v .:/code bpcode:bpcode```
+```docker rmi bpcode:bpcode```
 
-6. run ```docker exec -it bpcodecontainer /bin/bash```
+**4.** Build the Docker image:
 
-7. run ``cd code``
+```docker build -t bpcode:bpcode .``` 
+        
 
-**Note**
-Make sure to follow the setup steps to import the docker image before
-continuing with this step.
+or import the image file:
+
+```docker load -i image.tar```
+    
+        
+This will import the docker image named `<image>`. This might take a few minutes.
+
+**5.** Run the Docker container:
+
+```docker run -d -it --name bpcodecontainer -v .:/code bpcode:bpcode```
+
+**6.** Access the Docker container:
+
+```docker exec -it bpcodecontainer /bin/bash```
+
+  **Note** This will start a new Docker container where the following steps should be executed.
+  
+**7.** Inside the Docker environment, change to the code directory:
+
+ ``cd code``
+
 
 ### 2. Execute Evaluation Runs
 
-#### For a representative subset we call the function with input paramter 1
-8. run ``python ReplicateExperimentalResults.py 1``
+#### For a representative subset, use input paramter `1`:
+**8.** ``python ReplicateExperimentalResults.py 1``
 
-    ***Running the representative subset should about 2 hours***
+***Running the representative subset should take about 2 hours***
 
-#### For the whole expirements we call the function with input paramter 0
-8. run ``python ReplicateExperimentalResults.py 0``
+#### For the entire dataset, use input parameter `0`:
+**8.** ``python ReplicateExperimentalResults.py 0``
 
-    ***Note: Running the whole datset should will take significant computing time (several days)***
+***Note: Running the whole datset will require significant computing time (several days)***
 
 
 ### 3. Extract Numbers presented in the Paper
 
-In order to extract the data presented in the Table as well as the figures can be generated by running:
+To extract the data (Table as well as the figures) presented in the paper:
 
-- run ``python main.py``
+    python main.py
 
-The table data will be presented in the output screen and the 4 figures will be saved as `plot 6(a).png` resp. `6(b)/7(a)/7(b)` for the other three. Can be accessed via the project directory or via the docker app (under **Actions** -> three dots (i.e. Kebab menu) -> **View details** -> **Files** -> You can save the plot and view them there)
-
+The table data will be displayed on the output screen, and the figures will be saved as `plot 6(a).png`, `6(b).png`, `7(a).png`, and `7(b).png` within the project directory. You can also access these plots via the Docker application: go to Actions -> three dots (i.e., Kebab menu) -> View details -> Files -> You can save and view the plots there.
 
 # Reusable Badge
 
-In the next sub-sections we discribe in details how one can use the diffrent parts in the code.
-Note that the code is well documented so any helper fucntion that isn't describe here can be understood while looking at the code. But in order to not assume taht one is familier with codeing and python in particuler, we describe here with running examples the main parts as also explained in the paper.
+In the following subsections, we provide detailed instructions on how to use different components of the code. Note that the code is thoroughly documented, so any helper function not described here can be understood by examining the code. However, to cater to those who may not be familiar with coding, especially in Python, we explain the main components with running examples, as also discussed in the paper.
 
 ## Building the Docker Image
 
-In order to build the Docker image one need first to:
--  Install Docker as described at https://docs.docker.com/get-docker/.
--  The artifact contains all files to build the docker image from scratch as
-  follows:
-1. run ```docker stop bpcodecontainer```
-2. run ```docker rm bpcodecontainer```
-3. run ```docker rmi bpcode:bpcode```
-4. run ```docker build -t bpcode:bpcode .```
-5. run ``docker run -d -it --name bpcodecontainer -v .:/code bpcode:bpcode``
-6. run ``docker save -o image.tar bpcode``
+To build the Docker image, follow these steps:
 
-And now you have a Docker image :)
+1.  Install Docker by following the instructions at: https://docs.docker.com/get-docker/.
+2.  The artifact contains all the necessary files to build the Docker image from scratch. Execute the following commands:
+    1. Stop any existing Docker container:
 
-- Use docker image as described in the "Functional Badge" section. (i.e. in step 4 do: ```docker load -i image.tar```)
+       run ```docker stop bpcodecontainer```
+    2. Remove the Docker container:
+
+       run ```docker rm bpcodecontainer```
+    3. Remove the existing Docker image (if applicable):
+
+       run ```docker rmi bpcode:bpcode```
+    4. Build the Docker image:
+
+       run ```docker build -t bpcode:bpcode .```
+    5. Run the Docker container with the newly built image:
+
+       run ``docker run -d -it --name bpcodecontainer -v .:/code bpcode:bpcode``
+    6. Save the Docker image to a tar file:
+
+        run ``docker save -o image.tar bpcode``
+
+Now you have created a Docker image!
+
+- To use this Docker image, refer to the "Functional Badge" section. Specifically, in step 4 of the "Functional Badge," you can load the Docker image using: ```docker load -i image.tar```
 
 
 
