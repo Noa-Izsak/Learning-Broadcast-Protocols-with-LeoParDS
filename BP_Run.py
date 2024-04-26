@@ -4,7 +4,7 @@ import time
 import BP_Class as Bp
 from BP_Learn import LearnerBp
 from helpers_functions import *
-
+from BP_Learn import *
 
 twenty_min = 1200
 fifteen_min = 900

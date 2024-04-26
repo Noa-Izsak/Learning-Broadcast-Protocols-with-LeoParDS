@@ -1,6 +1,6 @@
 from BP_Class import *
 from BP_Run import *
-import pandas as pd
+# import pandas as pd
 
 from BP_gen import BP_generator, equivalent_bp, single_loop, eliminate_no_cutoff
 

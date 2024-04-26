@@ -200,9 +200,10 @@ def plot33_2(selected_data):
 
 def extract_inner_keys(input_string):
     actions_index = input_string.find("actions: ")
-
-    comma_newline_index = input_string.find(",\n", actions_index)
-
+    comma_newline_index = input_string.find("\n", actions_index)
+    if input_string[comma_newline_index - 1] == '\r':
+        comma_newline_index -= 1
+    comma_newline_index -= 1
     actions_substring = input_string[actions_index + len("actions: "):comma_newline_index]
 
     actions_dict = ast.literal_eval(actions_substring)

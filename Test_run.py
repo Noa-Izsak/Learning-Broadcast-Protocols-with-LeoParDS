@@ -66,14 +66,14 @@ def run_a_given_bp_example(bp_example, name, is_partial):
     :param is_partial: Whether we run for CS or for Random Generated sample
     :return:
     """
-    start = time.perf_counter()
+    # start = time.perf_counter()
     if is_partial:
         df1 = pd.DataFrame(columns=min_column)
     else:
         df1 = pd.DataFrame(columns=non_min_column)
     cutoff = 15
     timer_c = 900  # 15 min in seconds
-    max_len = 20
+    max_len = 15
 
     learner = BP_run(bp_example)
     minimal = is_partial
@@ -105,8 +105,8 @@ def run_a_given_bp_example(bp_example, name, is_partial):
             new_row1 = pd.DataFrame([sol], columns=non_min_column)
             df1 = pd.concat([df1 if not df1.empty else None, new_row1], ignore_index=True)
             df1.to_csv(f'BP_results_subsume_cs_{name}.csv', index=False)
-        end = time.perf_counter()
-        print(f"example {name} took {end - start} sec")
+        # end = time.perf_counter()
+        # print(f"example {name} took {end - start} sec")
         pass
 
 
@@ -171,7 +171,6 @@ bp4 = BP_class(2, {0: {'a': 0}, 1: {'b': 1, 'c': 1, 'd': 0}}, 0,
                {0: {'a': 1, 'b': 0, 'c': 0, 'd': 0}, 1: {'a': 1, 'b': 0, 'c': 0, 'd': 0}})
 bp5 = BP_class(2, {0: {'a': 1}, 1: {'b': 0}}, 0, {0: {'a': 1, 'b': 0}, 1: {'a': 1, 'b': 0}})
 
-startt = time.perf_counter()
 for partial in [True, False]:
     run_a_given_bp_example(bp1, "1", partial)
     run_a_given_bp_example(bp2, "2", partial)
@@ -183,7 +182,3 @@ for partial in [True, False]:
 Another example you may run, because it is randomly generated it might take more or less in each time it executed
 """
 # run_a_random_bp_example()
-
-endd = time.perf_counter()
-
-print(f"Total running time : {endd - startt} sec")

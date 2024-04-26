@@ -49,29 +49,28 @@ def generator_given_bp_and_sample(num_states, actions_dict, initial_state, recei
                 for n_word in words_added['negative'][n_c]:
                     right_output &= not (learned_bp.is_feasible(n_c, list(n_word)))
     sol['right_output'] = right_output
-    if to_print:
-        print(f"scenario {scenario_num - 1}: the two BP's are equivalent?:", right_output)
+    print(f"scenario {scenario_num - 1}: the two BP's are equivalent?:", right_output)
     new_row = pd.DataFrame([sol], columns=non_min_column)
     return new_row
 
 
 def parse_template(template):
     """ Use regular expressions to extract information from the template """
-    states_match = re.search(r"states: (\d+),\n ", template)
+    states_match = re.search(r"states: (\d+),", template)
     if states_match:
         num_states = int(states_match.group(1))
     else:
         num_states = None
 
     # actions_match = re.search(r"actions: ({(?:\d+: {(?:'\w': \d,? *)+},? *)+}),\n", template)
-    actions_match = re.search(r"actions: ({(?:\d+: {(?:'\w': \d+,? *)+},? *)+}),\n", template)
+    actions_match = re.search(r"actions: ({(?:\d+: {(?:'\w': \d+,? *)+},? *)+}),", template)
     if actions_match:
         actions_dict_str = actions_match.group(1)
         actions_dict = ast.literal_eval(actions_dict_str)  # Safely convert string to dictionary using ast.literal_eval
     else:
         actions_dict = None
 
-    initial_match = re.search(r"initial: (\d+),\n", template)
+    initial_match = re.search(r"initial: (\d+),", template)
     if initial_match:
         initial_state = int(initial_match.group(1))
     else:
@@ -142,7 +141,7 @@ replicate_experimental_results("results_infer", True)
 Please note that it will take several days and alot of computerized power
 """
 # For running in pycharm environment instead of docker, comment the main part and uncomment the row below
-# replicate_experimental_results("results_infer", True, 15)
+# replicate_experimental_results("results_infer", True, 5)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -153,7 +152,10 @@ if __name__ == '__main__':
         arg1 = sys.argv[1]
 
         if arg1 == '1':
+            ss = time.perf_counter()
             replicate_experimental_results("results_infer", True, 15)
+            ee = time.perf_counter()
+            print(f"Total time was {ee - ss} sec, which is {(ee - ss) / 60} min")
         elif arg1 == '0':
             replicate_experimental_results("results_infer", True)
         else:
