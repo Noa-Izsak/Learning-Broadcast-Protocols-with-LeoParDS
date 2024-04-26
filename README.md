@@ -107,7 +107,7 @@ The output should including visual printing, along with the creation of 10 files
     
     - The first $5$ files, (`BP_results_non_cs_{i}.csv`) contain randomly generated words, so the execution time may vary but should be completed in less than $3$ minutes.
     
-    - The other $5$ files, (`BP_results_subsume_cs_{i}.csv`) ake up to $2$ minutes to run.
+    - The other $5$ files, (`BP_results_subsume_cs_{i}.csv`) take up to $2$ minutes to run.
     
 The entire process should take up to $5$ minutes to complete.
 
@@ -117,7 +117,8 @@ In `BP_results_subsume_cs_{i}.csv` the `output_BP` might slightly vary between r
 
 For `BP_results_non_cs_{i}.csv` the `output_BP` is influenced by randomly generated words, but for the provided test inputs, it should terminate with `right_output` as **True** and `minimal_right_output` as **True** (refer to figure below):
 
-![image](https://github.com/Noa-Izsak/Learning-Broadcast-Protocols-with-LeoParDS/assets/62952579/64f79bd6-4d6a-46c6-b7cd-f2881dc679ec)
+![image](https://github.com/Noa-Izsak/Learning-Broadcast-Protocols-with-LeoParDS/assets/62952579/f2a02308-9935-48ca-b1e9-6dbae5c0f9af)
+
 
 ***Note: Example outputs are provided, but they may vary. Refer to `Runing example for Test_run` folder.*** 
 
