@@ -3,9 +3,9 @@ False,False,2,4,"states: 2,
  actions: {0: {'a': 0}, 1: {'b': 1, 'c': 1, 'd': 0}},
 initial: 0,
 receivers: {0: {'a': 1, 'b': 0, 'c': 0, 'd': 0}, 1: {'a': 1, 'b': 0, 'c': 0, 'd': 0}}","states: 4,
-actions: {0: {'a': 3}, 1: {'b': 3}, 3: {'d': 0}, 2: {'c': 2}},
+actions: {0: {'a': 2}, 1: {'b': 1}, 3: {'d': 0}, 2: {'c': 3}},
 initial: 0,
-receivers: {0: {'a': 0, 'b': 2, 'd': 2, 'c': 0}, 1: {'a': 0, 'b': 3, 'd': 3, 'c': 1}, 3: {'a': 1, 'b': 0, 'd': 3, 'c': 3}, 2: {'a': 0, 'b': 1, 'd': 1, 'c': 2}}",22,0.00024485000176355243,3,7,"{'positive': {6: ['adaaa'], 8: ['aaaa'], 19: ['ada']}, 'negative': {1: ['cada'], 5: ['bdcdacbcacabdcc', 'bddaccb'], 11: ['cbbadacbbddb'], 12: ['bbbdacabbc'], 14: ['bcaddccdbdadccabac'], 22: ['aacdddaabcacdbdbcbc']}}",19,0.1779067249954096,True,2,"states: 2,
-actions: {0: {'a': 0}, 1: {'b': 0, 'd': 1, 'c': 1}},
+receivers: {0: {'a': 0, 'b': 1, 'd': 0, 'c': 0}, 1: {'a': 0, 'b': 0, 'd': 0, 'c': 0}, 3: {'a': 0, 'b': 0, 'd': 0, 'c': 0}, 2: {'a': 0, 'b': 0, 'd': 0, 'c': 0}}",29,0.0001796550004655728,1,9,"{'positive': {24: ['acda']}, 'negative': {8: ['dcbbbaa', 'ccabdcdaa'], 12: ['bdaabdbbdb', 'bccccaacaddd'], 16: ['cbaaacba'], 18: ['addcb'], 21: ['baadd'], 25: ['dba'], 29: ['c']}}",12,0.11775921500066033,True,2,"states: 2,
+actions: {0: {'a': 1}, 1: {'b': 0, 'd': 0, 'c': 1}},
 initial: 0,
-receivers: {0: {'a': 1, 'b': 1, 'd': 0, 'c': 1}, 1: {'a': 0, 'b': 0, 'd': 0, 'c': 1}}",2.0078035540063865,True
+receivers: {0: {'a': 0, 'b': 0, 'd': 0, 'c': 0}, 1: {'a': 0, 'b': 0, 'd': 0, 'c': 0}}",1.46340685999985,True

@@ -3,9 +3,9 @@ False,False,3,2,"states: 3,
  actions: {0: {'a': 2}, 1: {'b': 1}, 2: {'c': 1}},
 initial: 0,
 receivers: {0: {'a': 1, 'b': 0, 'c': 2}, 1: {'a': 0, 'b': 1, 'c': 1}, 2: {'a': 2, 'b': 1, 'c': 1}}","states: 2,
-actions: {0: {'K': 0}, 1: {'b': 1, 'c': 1, 'a': 1}},
+actions: {0: {'S': 0}, 1: {'b': 1, 'a': 1, 'c': 1}},
 initial: 0,
-receivers: {0: {'b': 0, 'c': 0, 'a': 0, 'K': 0}, 1: {'b': 1, 'c': 1, 'a': 1, 'K': 1}}",24,0.00027721199876395985,0,10,"{'positive': {}, 'negative': {3: ['aaaacbb'], 6: ['acbbbbbcbcaccabcc'], 7: ['cbbcaacccacccc'], 16: ['cbcacccbcbccababc'], 17: ['bbbaa'], 20: ['cc', 'cbccaaabaabbbbbba'], 22: ['abcbcbba'], 23: ['bcaccccabcacbba'], 24: ['babbbacabccccbbbcac']}}",19,0.008599916000093799,True,2,"states: 2,
-actions: {0: {'K': 0}, 1: {'b': 1, 'c': 1, 'a': 1}},
+receivers: {0: {'b': 0, 'a': 0, 'c': 0, 'S': 0}, 1: {'b': 1, 'a': 1, 'c': 1, 'S': 1}}",29,0.0001813869994293782,0,10,"{'positive': {}, 'negative': {3: ['bcbaacbabb'], 7: ['cccc'], 11: ['ccacacb'], 12: ['acbacaa'], 16: ['caababcababa'], 20: ['bbcabcacc'], 21: ['b'], 23: ['bcabbcbaaaacaca'], 26: ['cca'], 29: ['bbaccbabcbabbab']}}",15,0.0056109950000973186,True,2,"states: 2,
+actions: {0: {'S': 0}, 1: {'b': 1, 'a': 1, 'c': 1}},
 initial: 0,
-receivers: {0: {'b': 0, 'c': 0, 'a': 0, 'K': 0}, 1: {'b': 1, 'c': 1, 'a': 1, 'K': 1}}",0,True
+receivers: {0: {'b': 0, 'a': 0, 'c': 0, 'S': 0}, 1: {'b': 1, 'a': 1, 'c': 1, 'S': 1}}",0,True

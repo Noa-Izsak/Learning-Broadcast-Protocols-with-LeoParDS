@@ -1,11 +1,11 @@
 failed_converged,timeout,amount_of_states_in_origin,amount_of_states_in_output,origin_BP,output_BP,cutoff,CS_development_time,CS_positive_size,CS_negative_size,words_added,longest_word_in_CS,solve_SMT_time,right_output,amount_of_states_in_minimal_output,minimal_output_BP,minimal_solve_SMT_time,minimal_right_output
-False,False,3,2,"states: 3,
+False,False,3,4,"states: 3,
  actions: {0: {'a': 0, 'd': 0}, 1: {'b': 0}, 2: {'c': 2, 'e': 2}},
 initial: 0,
-receivers: {0: {'a': 0, 'b': 0, 'c': 1, 'd': 0, 'e': 1}, 1: {'a': 0, 'b': 2, 'c': 1, 'd': 2, 'e': 1}, 2: {'a': 1, 'b': 1, 'c': 0, 'd': 1, 'e': 0}}","states: 2,
-actions: {0: {'K': 0}, 1: {'b': 1, 'd': 1, 'a': 1, 'c': 1, 'e': 1}},
+receivers: {0: {'a': 0, 'b': 0, 'c': 1, 'd': 0, 'e': 1}, 1: {'a': 0, 'b': 2, 'c': 1, 'd': 2, 'e': 1}, 2: {'a': 1, 'b': 1, 'c': 0, 'd': 1, 'e': 0}}","states: 4,
+actions: {0: {'a': 2}, 2: {'b': 1, 'e': 0}, 1: {'d': 2}, 3: {'c': 1}},
 initial: 0,
-receivers: {0: {'b': 0, 'd': 0, 'a': 0, 'c': 0, 'e': 0, 'K': 0}, 1: {'b': 1, 'd': 1, 'a': 1, 'c': 1, 'e': 1, 'K': 1}}",30,0.00021087499771965668,0,10,"{'positive': {}, 'negative': {10: ['beb'], 12: ['eeabbeaadaeeceac'], 16: ['eebdbeceecccd'], 17: ['eaccebbcea'], 19: ['cdbecaeeaeabedecdc'], 22: ['dbeed'], 23: ['bceb'], 25: ['decea'], 30: ['aeebcedaeece', 'bbceb']}}",18,0.007104249998519663,True,2,"states: 2,
-actions: {0: {'K': 0}, 1: {'b': 1, 'd': 1, 'a': 1, 'c': 1, 'e': 1}},
+receivers: {0: {'a': 2, 'b': 3, 'd': 3, 'e': 2, 'c': 0}, 2: {'a': 3, 'b': 2, 'd': 3, 'e': 3, 'c': 3}, 1: {'a': 0, 'b': 0, 'd': 1, 'e': 0, 'c': 2}, 3: {'a': 1, 'b': 1, 'e': 3, 'd': 3, 'c': 1}}",28,0.0001866590000645374,1,9,"{'positive': {25: ['a']}, 'negative': {3: ['baed'], 8: ['cabcaabaccdd', 'cbbaa'], 11: ['cdbabc'], 12: ['dbdbcbbbdbabbdd'], 16: ['ac'], 17: ['aeabcaaecccc'], 21: ['abeac'], 28: ['c']}}",15,0.1705356259999462,True,2,"states: 2,
+actions: {0: {'a': 0, 'b': 3, 'd': 0, 'e': 3}, 3: {'c': 0}},
 initial: 0,
-receivers: {0: {'b': 0, 'd': 0, 'a': 0, 'c': 0, 'e': 0, 'K': 0}, 1: {'b': 1, 'd': 1, 'a': 1, 'c': 1, 'e': 1, 'K': 1}}",0,True
+receivers: {0: {'a': 0, 'b': 0, 'd': 3, 'e': 3, 'c': 3}, 3: {'a': 3, 'b': 3, 'd': 3, 'e': 3, 'c': 0}}",1.860930305999318,True
