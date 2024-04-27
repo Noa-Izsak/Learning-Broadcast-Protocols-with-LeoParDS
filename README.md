@@ -49,51 +49,57 @@ The following software is required for running this artifact:
   unzip Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip
   ```
 
-**1.** Stop the existing Docker container:
+**1.** Build the Docker image:
 
-    docker stop bpcodecontainer
-
-**2.** Remove the Docker container:
-
-    docker rm bpcodecontainer
-
-**3.** Remove the Docker image:
-
-    docker rmi bpcode:bpcode
-
-**4.** Build the Docker image:
-
-    docker build -t bpcode:bpcode . 
-        
+```bash
+docker build -t bpcode:bpcode . 
+```        
 
 or import the image file:
 
-    docker load -i image.tar
-    
+```bash
+docker load -i image.tar
+```    
         
 This will import the docker image named `<image>`. This might take a few minutes.
 
-**5.** Run the Docker container:
+**2.** Run the Docker container:
 
-    docker run -d -it --name bpcodecontainer -v .:/code bpcode:bpcode
+```bash
+docker run -d -it --name bpcodecontainer bpcode:bpcode
+```
 
-**6.** Access the Docker container:
+If you would like to copy the produced results / outputs to your local machine 
+(for example to take a look at the produced figures), the 
+easiest way is to mount your local directory in the docker container. 
 
-    docker exec -it bpcodecontainer /bin/bash
+To do so, run the container in the directory you want the files to be stored with
+the additional `-v` flag:
 
-  **Note** This will start a new Docker container where the following steps should be executed.
+```bash
+docker run -d -it --name bpcodecontainer -v .:/storage bpcode:bpcode
+```
+
+This will make you current directory accessible in the container under the path `/storage`.
   
-**7.** Inside the Docker environment, change to the code directory:
+**3.** Access the Docker container:
 
-    cd code
+```bash
+docker exec -it bpcodecontainer /bin/bash
+```
+
+**Note** This will start a new Docker container.
+  
 
 ## Smoke Test Steps   
 
-After completing the above 7 steps, within the Docker environment:
+After completing the above steps, within the Docker environment:
 
-**8.** Execute the smoke test:
+**4.** Execute the smoke test:
 
-    python Test_run.py
+```bash
+python Test_run.py
+```
 
 **Output of Smoke Test Execution**
 <details>
@@ -126,6 +132,26 @@ The critical aspect is ensuring `right_output` is **True**, and for the second c
 </details>
 
 
+### Cleanup
+
+**1.** Stop the existing Docker container:
+
+```bash
+docker stop bpcodecontainer
+```
+
+**2.** Remove the Docker container:
+
+```bash
+docker rm bpcodecontainer
+```
+
+**3.** Remove the Docker image:
+
+```bash
+docker rmi bpcode:bpcode
+```
+
 # Available Bagde
 
 The artifact has been uploaded to Zenodo and is accessible at
@@ -137,7 +163,7 @@ In our paper, we executed ```generator_and_check_subsume_cs``` , and for each in
 Due to the random generation of Broadcast Protocols (BPs), it is possible that running the tool independently may not reproduce the exact set of BPs. 
 However, this variability is acceptable, as our aim is to encourage other fields to utilize this tool for their own purposes and explore new applications.
 
-We have included the experiment-generated data in ```results.csv```. 
+We have included the experiment-generated data under the Results folder in ```results.csv```. 
 
 ***Note:*** Generating this data required several days of compute time across multiple compute nodes using a cluster. The resulting files are substantial in size, and regenrate these files will demand significant computing resources.
 
@@ -204,61 +230,72 @@ To reproduce our experimental results, follow these steps:
 
   **Note:** This will extract the artifact directory structure and files into the current working directory, including the compressed Docker image 
   `image.tar`.
-  ```
+
+  ```bash
   unzip Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip
   ```
 
-**1.** Stop the existing Docker container:
+**1.** Build the Docker image:
 
-```docker stop bpcodecontainer```
-
-**2.** Remove the Docker container:
-
-```docker rm bpcodecontainer```
-
-**3.** Remove the Docker image:
-
-```docker rmi bpcode:bpcode```
-
-**4.** Build the Docker image:
-
-```docker build -t bpcode:bpcode .``` 
+```bash
+docker build -t bpcode:bpcode .
+``` 
         
-
 or import the image file:
 
-```docker load -i image.tar```
+```bash
+docker load -i image.tar
+```
     
         
 This will import the docker image named `<image>`. This might take a few minutes.
 
-**5.** Run the Docker container:
+**2.** Run the Docker container:
 
-```docker run -d -it --name bpcodecontainer -v .:/code bpcode:bpcode```
+ ```bash
+ docker run -d -it --name bpcodecontainer bpcode:bpcode
+ ```
 
-**6.** Access the Docker container:
+If you would like to copy the produced results / outputs to your local machine 
+(for example to take a look at the produced figures), the 
+easiest way is to mount your local directory in the docker container. 
 
-```docker exec -it bpcodecontainer /bin/bash```
+To do so, run the container in the directory you want the files to be stored with
+the additional `-v` flag:
 
-  **Note** This will start a new Docker container where the following steps should be executed.
-  
-**7.** Inside the Docker environment, change to the code directory:
+```bash
+docker run -d -it --name bpcodecontainer -v .:/storage bpcode:bpcode
+```
 
- ``cd code``
+This will make your current directory accessible in the container under the path `/storage`.
+
+
+**3.** Access the Docker container:
+
+```bash
+docker exec -it bpcodecontainer /bin/bash
+```
+
+**Note**: This will start a shell in the Docker container where the following steps should be executed.
 
 
 ### 2. Execute Evaluation Runs
 
 #### For a representative subset, use input paramter `1`:
-**8.** ``python ReplicateExperimentalResults.py 1``
+**4.** ``python ReplicateExperimentalResults.py 1``
 
 ***Running the representative subset should take about 2 hours***
 
 #### For the entire dataset, use input parameter `0`:
-**8.** ``python ReplicateExperimentalResults.py 0``
+**4.** ``python ReplicateExperimentalResults.py 0``
 
-***Note: Running the whole datset will require significant computing time (several days)***
+***Note: Running the whole dataset will require significant computing time (several days)***
 
+If you want to copy to the produced output file (and you started the container with your local directory mounted, see step 2 *Run the Docker container*), simply execute:
+
+```bash
+cp results_infer.csv /storage
+```
 
 ### 3. Extract Numbers presented in the Paper
 
@@ -266,7 +303,33 @@ To extract the data (Table as well as the figures) presented in the paper:
 
     python main.py
 
-The table data will be displayed on the output screen, and the figures will be saved as `plot 6(a).png`, `6(b).png`, `7(a).png`, and `7(b).png` within the project directory. You can also access these plots via the Docker application: go to Actions -> three dots (i.e., Kebab menu) -> View details -> Files -> You can save and view the plots there.
+The table data will be displayed on the output screen, and the figures will be saved as `plot 6(a).png`, `plot 6(b).png`, `plot 7(a).png`, and `plot 7(b).png` within the project directory.
+
+If you want to copy to the produced output files to your local machine (and you started the container with your local directory mounted, see step 2 *Run the Docker container*), simply execute:
+
+```bash
+cp *.png /storage
+```
+
+### 4. Cleanup
+
+**1.** Stop the existing Docker container:
+
+```bash
+docker stop bpcodecontainer
+```
+
+**2.** Remove the Docker container:
+
+```bash
+docker rm bpcodecontainer
+```
+
+**3.** Remove the Docker image:
+
+```bash
+docker rmi bpcode:bpcode
+```
 
 # Reusable Badge
 
@@ -278,28 +341,27 @@ To build the Docker image, follow these steps:
 
 1.  Install Docker by following the instructions at: https://docs.docker.com/get-docker/.
 2.  The artifact contains all the necessary files to build the Docker image from scratch. Execute the following commands:
-    1. Stop any existing Docker container:
+    1. Build the Docker image:
 
-       run ```docker stop bpcodecontainer```
-    2. Remove the Docker container:
+       ```bash
+       docker build -t bpcode:bpcode .
+       ```
+       
+    2. Run the Docker container with the newly built image:
 
-       run ```docker rm bpcodecontainer```
-    3. Remove the existing Docker image (if applicable):
+       ```bash
+       docker run -d -it --name bpcodecontainer -v .:/storage bpcode:bpcode
+       ```
+       
+    3. Save the Docker image to a tar file:
 
-       run ```docker rmi bpcode:bpcode```
-    4. Build the Docker image:
-
-       run ```docker build -t bpcode:bpcode .```
-    5. Run the Docker container with the newly built image:
-
-       run ``docker run -d -it --name bpcodecontainer -v .:/code bpcode:bpcode``
-    6. Save the Docker image to a tar file:
-
-        run ``docker save -o image.tar bpcode``
+        ```bash
+       docker save -o image.tar bpcode
+        ```
 
 Now you have created a Docker image!
 
-- To use this Docker image, refer to the "Functional Badge" section. Specifically, in step 4 of the "Functional Badge," you can load the Docker image using: ```docker load -i image.tar```
+- To use this Docker image, refer to the "Setup Steps" section. Specifically, in step 1 of the "Setup Steps" you can load the Docker image using: ```docker load -i image.tar```
 
 
 
