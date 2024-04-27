@@ -55,7 +55,7 @@ The following software is required for running this artifact:
 docker build -t bpcode:bpcode . 
 ```        
 
-or import the image file:
+Or import the image file:
 
 ```bash
 docker load -i image.tar
@@ -69,7 +69,7 @@ This will import the docker image named `<image>`. This might take a few minutes
 docker run -d -it --name bpcodecontainer bpcode:bpcode
 ```
 
-If you would like to copy the produced results / outputs to your local machine 
+Or, if you would like to copy the produced results / outputs to your local machine 
 (for example to take a look at the produced figures), the 
 easiest way is to mount your local directory in the docker container. 
 
@@ -255,7 +255,7 @@ To reproduce our experimental results, follow these steps:
 docker build -t bpcode:bpcode .
 ``` 
         
-or import the image file:
+Or import the image file:
 
 ```bash
 docker load -i image.tar
@@ -270,7 +270,7 @@ This will import the docker image named `<image>`. This might take a few minutes
  docker run -d -it --name bpcodecontainer bpcode:bpcode
  ```
 
-If you would like to copy the produced results / outputs to your local machine 
+Or, if you would like to copy the produced results / outputs to your local machine 
 (for example to take a look at the produced figures), the 
 easiest way is to mount your local directory in the docker container. 
 
