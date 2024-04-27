@@ -111,11 +111,11 @@ The output should including visual printing, along with the creation of 10 files
 
 - Files named `BP_results_non_cs_{i}.csv` and `BP_results_subsume_cs_{i}.csv` for $i$ in $[1,2,3,4,5]$.
     
-    - The first $5$ files, (`BP_results_non_cs_{i}.csv`) contain randomly generated words, so the execution time may vary but should be completed in less than $3$ minutes.
+    - The first $5$ files, (`BP_results_non_cs_{i}.csv`) contain randomly generated words, so the execution time may vary but should be completed in less than $5$ minutes.
     
-    - The other $5$ files, (`BP_results_subsume_cs_{i}.csv`) take up to $2$ minutes to run.
+    - The other $5$ files, (`BP_results_subsume_cs_{i}.csv`).
     
-The entire process should take up to $5$ minutes to complete.
+The entire process should take about $5$ minutes to complete.
 
 In `BP_results_subsume_cs_{i}.csv` the `output_BP` might slightly vary between runs, but `right_output` should always be **True** (refer to figure below):
 
@@ -159,7 +159,7 @@ The artifact has been uploaded to Zenodo and is accessible at
 
 # Functional Badge
 
-In our paper, we executed ```generator_and_check_subsume_cs``` , and for each input that terminated according to our criteria as explained in the paper, we added it to the dataset we examined.
+In our paper, we executed ```generator_and_check_subsume_cs``` , and for each input that terminated according to our criteria as explained in the paper, we added it to the data-set we examined.
 Due to the random generation of Broadcast Protocols (BPs), it is possible that running the tool independently may not reproduce the exact set of BPs. 
 However, this variability is acceptable, as our aim is to encourage other fields to utilize this tool for their own purposes and explore new applications.
 
@@ -215,7 +215,7 @@ For each of these BPs we generated a random sample with a random number of words
 and a bound of $20$ for the number of processes.
 The ratio of positive examples in the sample ranges between $0$ and $1$.
 
-**Note: Due to the fact the running the whole datset should take several days, we present both the way to run the whole expirement and a subset of it that will take up to two hours**
+**Note: Due to the fact the running the whole data-set should take several days, we present both the way to run the whole expirement and a subset of it that will take up to two hours**
 
 To reproduce our experimental results, follow these steps:
 
@@ -286,10 +286,10 @@ docker exec -it bpcodecontainer /bin/bash
 
 ***Running the representative subset should take about 2 hours***
 
-#### For the entire dataset, use input parameter `0`:
+#### For the entire data-set, use input parameter `0`:
 **4.** ``python ReplicateExperimentalResults.py 0``
 
-***Note: Running the whole dataset will require significant computing time (several days)***
+***Note: Running the whole data-set will require significant computing time (several days)***
 
 If you want to copy to the produced output file (and you started the container with your local directory mounted, see step 2 *Run the Docker container*), simply execute:
 
@@ -347,13 +347,7 @@ To build the Docker image, follow these steps:
        docker build -t bpcode:bpcode .
        ```
        
-    2. Run the Docker container with the newly built image:
-
-       ```bash
-       docker run -d -it --name bpcodecontainer -v .:/storage bpcode:bpcode
-       ```
-       
-    3. Save the Docker image to a tar file:
+    2. Save the Docker image to a tar file:
 
         ```bash
        docker save -o image.tar bpcode
