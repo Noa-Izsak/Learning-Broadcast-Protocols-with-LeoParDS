@@ -101,6 +101,20 @@ After completing the above steps, within the Docker environment:
 python Test_run.py
 ```
 
+If you want to copy to the produced output file (and you started the container with your local directory mounted, see step 2 *Run the Docker container*), simply execute in the Docker enviornemnt:
+
+```bash
+cp BP_results_subsume_cs_*.csv /storage
+```
+
+and
+
+```bash
+cp BP_results_non_cs_*.csv /storage
+```
+
+
+
 **Output of Smoke Test Execution**
 <details>
   <summary>Click here for the Output of Smoke Test Execution</summary>
