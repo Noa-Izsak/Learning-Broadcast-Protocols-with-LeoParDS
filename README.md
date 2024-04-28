@@ -38,7 +38,7 @@ The following software is required for running this artifact:
 ## Setup Steps
 - Install Docker by following the instructions at https://docs.docker.com/get-docker/.
 
-- Download the artifact Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip from [https://zenodo.org/record/`<record>`](https://zenodo.org/records/11077428)
+- Download the artifact Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip from [https://zenodo.org/record/11080250](https://zenodo.org/records/11080250)
 
 - Unzip the artifact:
 
@@ -171,7 +171,7 @@ docker rmi bpcode:bpcode
 # Available Bagde
 
 The artifact has been uploaded to Zenodo and is accessible at
-[https://zenodo.org/record/`<record>`](https://zenodo.org/records/11077428) (DOI: `10.5281/zenodo.10968038`).
+[https://zenodo.org/record/11080250](https://zenodo.org/records/11080250) (DOI: `10.5281/zenodo.10968038`).
 
 ## Artifact Directory Structure
 
@@ -238,7 +238,7 @@ To reproduce our experimental results, follow these steps:
 - Install Docker by following the instructions at: //docs.docker.com/get-docker/.
 
 - Download the artifact `Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip `
-  from [https://zenodo.org/record/`<record>`](https://zenodo.org/records/11077428)
+  from [https://zenodo.org/record/11080250](https://zenodo.org/records/11080250)
 
 - Unzip the artifact:
 
