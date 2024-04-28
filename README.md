@@ -171,7 +171,7 @@ docker rmi bpcode:bpcode
 # Available Bagde
 
 The artifact has been uploaded to Zenodo and is accessible at
-[https://zenodo.org/record/`<record>`](https://zenodo.org/records/11077428) (DOI: `10.5281/zenodo.11077428`).
+[https://zenodo.org/record/`<record>`](https://zenodo.org/records/11077428) (DOI: `10.5281/zenodo.10968038`).
 
 ## Artifact Directory Structure
 
