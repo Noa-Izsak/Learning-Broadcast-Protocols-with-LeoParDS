@@ -65,11 +65,7 @@ This will import the docker image named `<image>`. This might take a few minutes
 
 **2.** Run the Docker container:
 
-```bash
-docker run -d -it --name bpcodecontainer bpcode:bpcode
-```
-
-Or, if you would like to copy the produced results / outputs to your local machine 
+If you would like to copy the produced results / outputs to your local machine 
 (for example to take a look at the produced figures), the 
 easiest way is to mount your local directory in the docker container. 
 
@@ -81,6 +77,12 @@ docker run -d -it --name bpcodecontainer -v .:/storage bpcode:bpcode
 ```
 
 This will make you current directory accessible in the container under the path `/storage`.
+
+Otherwise, run:
+
+```bash
+docker run -d -it --name bpcodecontainer bpcode:bpcode
+```
   
 **3.** Access the Docker container:
 
@@ -266,11 +268,7 @@ This will import the docker image named `<image>`. This might take a few minutes
 
 **2.** Run the Docker container:
 
- ```bash
- docker run -d -it --name bpcodecontainer bpcode:bpcode
- ```
-
-Or, if you would like to copy the produced results / outputs to your local machine 
+If you would like to copy the produced results / outputs to your local machine 
 (for example to take a look at the produced figures), the 
 easiest way is to mount your local directory in the docker container. 
 
@@ -281,7 +279,13 @@ the additional `-v` flag:
 docker run -d -it --name bpcodecontainer -v .:/storage bpcode:bpcode
 ```
 
-This will make your current directory accessible in the container under the path `/storage`.
+This will make you current directory accessible in the container under the path `/storage`.
+
+Otherwise, run:
+
+```bash
+docker run -d -it --name bpcodecontainer bpcode:bpcode
+```
 
 
 **3.** Access the Docker container:
