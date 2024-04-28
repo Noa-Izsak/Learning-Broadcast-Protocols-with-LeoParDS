@@ -19,8 +19,8 @@ artifact evaluation.
 - [Setup Steps](#setup-steps)
 - [Smoke Test Steps](#smoke-test-steps)
 - [Available Bagde](#available-bagde)
-- [Functional Badge](#functional-badge)
 - [Artifact Directory Structure](#artifact-directory-structure)
+- [Functional Badge](#functional-badge)
 - [Steps to Replicate the Experimental Results](#steps-to-replicate-the-experimental-results)
 - [Reusable Badge](#reusable-badge)
 - [Building the Docker Image](#building-the-docker-image)
@@ -173,21 +173,7 @@ docker rmi bpcode:bpcode
 The artifact has been uploaded to Zenodo and is accessible at
 [https://zenodo.org/record/`<record>`](https://zenodo.org/records/11077428) (DOI: `10.5281/zenodo.11077428`).
 
-# Functional Badge
-
-In our paper, we executed ```generator_and_check_subsume_cs``` , and for each input that terminated according to our criteria as explained in the paper, we added it to the data-set we examined.
-Due to the random generation of Broadcast Protocols (BPs), it is possible that running the tool independently may not reproduce the exact set of BPs. 
-However, this variability is acceptable, as our aim is to encourage other fields to utilize this tool for their own purposes and explore new applications.
-
-We have included the experiment-generated data under the Results folder in ```results.csv```. 
-
-***Note:*** Generating this data required several days of compute time across multiple compute nodes using a cluster. The resulting files are substantial in size, and regenrate these files will demand significant computing resources.
-
-
 ## Artifact Directory Structure
-
-**Comment** Example directory structure of the artifact. List all files in the
-artifact and add a description for each one.
 
   - `Dockerfile`: The docker file to build the artifact image
   - `commands_to_run.text`: The commands you need to run after unziping the artifact 
@@ -222,6 +208,18 @@ artifact and add a description for each one.
   - `Trie.py` : An helper class
   - `main.py` : A function where you can plot the evaluated results as we present in the paper
 
+# Functional Badge
+
+In our paper, we executed ```generator_and_check_subsume_cs``` , and for each input that terminated according to our criteria as explained in the paper, we added it to the data-set we examined.
+Due to the random generation of Broadcast Protocols (BPs), it is possible that running the tool independently may not reproduce the exact set of BPs. 
+However, this variability is acceptable, as our aim is to encourage other fields to utilize this tool for their own purposes and explore new applications.
+
+We have included the experiment-generated data under the Results folder in ```results.csv```. 
+
+***Note:*** Generating this data required several days of compute time across multiple compute nodes using a cluster. The resulting files are substantial in size, and regenrate these files will demand significant computing resources.
+
+See ***Steps to Replicate the Experimental Results*** for instructions.
+
 ## Steps to Replicate the Experimental Results
 
 We ran all experiments on a cluster with Intel Xeon E5-2620 v4 CPUs. We
@@ -251,7 +249,7 @@ To reproduce our experimental results, follow these steps:
   unzip Learning-Broadcast-Protocols-with-LeoParDS-artifact.zip
   ```
 
-**1.** Build the Docker image:
+**1.** **Build the Docker image:**
 
 ```bash
 docker build -t bpcode:bpcode .
@@ -266,7 +264,7 @@ docker load -i image.tar
         
 This will import the docker image named `<image>`. This might take a few minutes.
 
-**2.** Run the Docker container:
+**2.** **Run the Docker container:**
 
 If you would like to copy the produced results / outputs to your local machine 
 (for example to take a look at the produced figures), the 
@@ -288,7 +286,7 @@ docker run -d -it --name bpcodecontainer bpcode:bpcode
 ```
 
 
-**3.** Access the Docker container:
+**3.** **Access the Docker container:**
 
 ```bash
 docker exec -it bpcodecontainer /bin/bash
@@ -300,12 +298,22 @@ docker exec -it bpcodecontainer /bin/bash
 ### 2. Execute Evaluation Runs
 
 #### For a representative subset, use input paramter `1`:
-**4.** ``python ReplicateExperimentalResults.py 1``
+
+**4.** For a representative subset:
+
+```bash 
+python ReplicateExperimentalResults.py 1
+```
 
 ***Running the representative subset should take about 2 hours***
 
 #### For the entire data-set, use input parameter `0`:
-**4.** ``python ReplicateExperimentalResults.py 0``
+
+**4.** For the entire data-set:
+
+```bash 
+python ReplicateExperimentalResults.py 0
+```
 
 ***Note: Running the whole data-set will require significant computing time (several days)***
 
@@ -319,7 +327,9 @@ cp results_infer.csv /storage
 
 To extract the data (Table as well as the figures) presented in the paper:
 
-    python main.py
+```bash
+python main.py
+```
 
 The table data will be displayed on the output screen, and the figures will be saved as `plot 6(a).png`, `plot 6(b).png`, `plot 7(a).png`, and `plot 7(b).png` within the project directory.
 
