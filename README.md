@@ -10,8 +10,6 @@ Swen Jacobs $^2$**
 
 **2.  CISPA Helmholtz Center for Information Security, Saarbrücken, Germany**
 
-This artifact serves as an example template for artifacts submitted to ATVA'24
-artifact evaluation.
 
 ## Table of Contents
 - [Quickstart](#quickstart)
